@@ -85,14 +85,14 @@ public class MainActivity extends AppCompatActivity {
 
     public native String stringFromJNI();
 
-    @OnClick({R.id.btn_binary, R.id.btn_edge})
+    @OnClick({R.id.btn_binary, R.id.btn_edge,R.id.btn_mor})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_binary:
                 startActivity(new Intent(this, BinaryActivity.class));
                 break;
-            case R.id.btn_edge:
-                startActivity(new Intent(this, BinaryActivity.class));
+            case R.id.btn_mor:
+                startActivity(new Intent(this, MorphologyActivity.class));
                 break;
         }
 

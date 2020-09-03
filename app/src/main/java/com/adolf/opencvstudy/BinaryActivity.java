@@ -18,6 +18,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
@@ -60,15 +61,15 @@ public class BinaryActivity extends AppCompatActivity {
     }
 
     public void getContoursPic(Bitmap source) {
-        Mat matSource = new Mat();
-        Mat gray = new Mat();
-        Utils.bitmapToMat(source, matSource);
-        saveMat(matSource);
-        Imgproc.cvtColor(matSource, gray, Imgproc.COLOR_BGR2GRAY);
-        saveMat(gray);
-        Imgproc.threshold(gray, gray, 127, 255, Imgproc.THRESH_BINARY);
+        Mat src = new Mat();
+        Mat out = new Mat();
+        Utils.bitmapToMat(source, src);
+        saveMat(src);
+        Imgproc.cvtColor(src, out, Imgproc.COLOR_BGR2GRAY);
+        saveMat(out);
+        Imgproc.threshold(out, out, 127, 255, Imgproc.THRESH_BINARY);
 
-        saveMat(gray);
+        saveMat(out);
 
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         // Imgproc.findContours(gray, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
@@ -76,7 +77,7 @@ public class BinaryActivity extends AppCompatActivity {
 
         Log.d(TAG, "getContoursPic: " + contours.size());
 
-        Imgproc.findContours(gray, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(out, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         double maxVal = 0;
         int maxValIdx = 0;
         for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
@@ -87,10 +88,14 @@ public class BinaryActivity extends AppCompatActivity {
             }
         }
         Mat mRgba = new Mat();
-        mRgba.create(matSource.rows(), matSource.cols(), CvType.CV_8UC3);
+        mRgba.create(src.rows(), src.cols(), CvType.CV_8UC3);
         //绘制检测到的轮廓
         Imgproc.drawContours(mRgba, contours, -1, new Scalar(0, 255, 0), 5);
         saveMat(mRgba);
+
+        src.release();
+        out.release();
+        mRgba.release();
     }
 
 
@@ -131,29 +136,33 @@ public class BinaryActivity extends AppCompatActivity {
         Mat src = new Mat();
         Utils.bitmapToMat(btm, src);
         Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
-        Mat dst = new Mat();
+        Mat out = new Mat();
 
-        Imgproc.adaptiveThreshold(src, dst, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 13, 5);
-        saveMat(dst);
+        Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 13, 5);
+        saveMat(out);
 
-        Imgproc.adaptiveThreshold(src, dst, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
-        saveMat(dst);
+        Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
+        saveMat(out);
 
-        Imgproc.adaptiveThreshold(src, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 13, 5);
-        saveMat(dst);
+        Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 13, 5);
+        saveMat(out);
 
-        Imgproc.adaptiveThreshold(src, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
-        saveMat(dst);
+        Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
+        saveMat(out);
 
+        src.release();
+        out.release();
     }
+
+
     @OnClick(R.id.btn_do)
     public void onViewClicked() {
         mImgList.clear();
-        getContoursPic(BitmapFactory.decodeResource(this.getResources(), R.drawable.test));
-        adaptiveThreshold(BitmapFactory.decodeResource(this.getResources(), R.drawable.test));
+        getContoursPic(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
+        adaptiveThreshold(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
 
         ImgRVAdapter adapter = new ImgRVAdapter(mImgList, this);
-        GridLayoutManager manager = new GridLayoutManager(this, 2, GridLayoutManager.HORIZONTAL,false);
+        GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         mRvImgs.setLayoutManager(manager);
         mRvImgs.setAdapter(adapter);
     }
@@ -176,5 +185,6 @@ public class BinaryActivity extends AppCompatActivity {
         Imgcodecs.imwrite(file.getAbsolutePath(), source);
         mImgList.add(file.getAbsolutePath());
     }
+
     public native String stringFromJNI();
 }

@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_opencv"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".BinaryActivity"></activity>
+        <activity android:name=".MorphologyActivity" />
+        <activity android:name=".BinaryActivity"/>
         <activity android:name=".JavaCameraViewActivity" />
         <activity
             android:name=".MainActivity"

@@ -16,6 +16,11 @@
         android:text="二值" />
 
     <Button
+        android:id="@+id/btn_mor"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:text="形态学" />
+    <Button
         android:id="@+id/btn_edge"
         android:layout_width="200dp"
         android:layout_height="80dp"

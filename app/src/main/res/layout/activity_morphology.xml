@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".BinaryActivity">
+    tools:context=".MorphologyActivity">
 
     <Button
         android:id="@+id/btn_do"
@@ -18,6 +18,6 @@
         android:id="@+id/rv_imgs"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-         />
+        />
 
 </RelativeLayout>
