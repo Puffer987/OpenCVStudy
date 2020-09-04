@@ -3,9 +3,12 @@ package com.adolf.opencvstudy;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,9 +16,12 @@ import androidx.core.app.ActivityCompat;
 
 import org.opencv.android.OpenCVLoader;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -23,12 +29,15 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final String TAG = "[jq]MainActivity";
+    @BindView(R.id.iv_org)
+    ImageView mIvOrg;
     private String[] needPermissions = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
     };
 
     private List<String> askPermissions = new ArrayList<>();
+    private File mImg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +45,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         initPermission();
+
+        mImg = new File(getExternalFilesDir(null), "/temp.jpg");
+        try {
+            FileOutputStream out = new FileOutputStream(mImg);
+            BitmapFactory.decodeResource(getResources(), R.drawable.test).compress(Bitmap.CompressFormat.JPEG, 90, out);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
 
         // startActivity(new Intent(this,JavaCameraViewActivity.class));
     }
@@ -85,14 +106,30 @@ public class MainActivity extends AppCompatActivity {
 
     public native String stringFromJNI();
 
-    @OnClick({R.id.btn_binary, R.id.btn_edge,R.id.btn_mor})
+    @OnClick({R.id.btn_binary, R.id.btn_scan, R.id.btn_mor, R.id.btn_blur, R.id.btn_identify})
     public void onViewClicked(View view) {
+        Intent intent = new Intent();
+        intent.putExtra("img", mImg.getAbsolutePath());
         switch (view.getId()) {
             case R.id.btn_binary:
-                startActivity(new Intent(this, BinaryActivity.class));
+                intent.setClass(this, BinaryActivity.class);
+                startActivity(intent);
                 break;
             case R.id.btn_mor:
-                startActivity(new Intent(this, MorphologyActivity.class));
+                intent.setClass(this, MorphologyActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.btn_blur:
+                intent.setClass(this, BlurSharpenActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.btn_identify:
+                intent.setClass(this, IdentifyFeaturesActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.btn_scan:
+                intent.setClass(this, ScannerActivity.class);
+                startActivity(intent);
                 break;
         }
 

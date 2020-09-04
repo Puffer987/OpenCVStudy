@@ -33,6 +33,7 @@ public class MorphologyActivity extends AppCompatActivity {
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
     private SaveImgUtil mImgUtil;
+    private Bitmap mOrgBtm;
 
 
     @Override
@@ -40,14 +41,17 @@ public class MorphologyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_morphology);
         ButterKnife.bind(this);
-
+        mImgCachePath = new File(getExternalFilesDir(null), "/process");
         mImgUtil = new SaveImgUtil(mImgCachePath,mRVBeanList);
+
+        String path = getIntent().getStringExtra("img");
+        mOrgBtm = BitmapFactory.decodeFile(path);
     }
 
     @OnClick(R.id.btn_do)
     public void onViewClicked() {
         mRVBeanList.clear();
-        morphological(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
+        morphological(mOrgBtm);
 
         ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
         GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);

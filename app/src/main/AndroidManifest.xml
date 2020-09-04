@@ -12,7 +12,9 @@
         android:roundIcon="@mipmap/ic_opencv"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".BlurSharpenActivity"></activity>
+        <activity android:name=".ScannerActivity"></activity>
+        <activity android:name=".IdentifyFeaturesActivity" />
+        <activity android:name=".BlurSharpenActivity" />
         <activity android:name=".MorphologyActivity" />
         <activity android:name=".BinaryActivity" />
         <activity android:name=".JavaCameraViewActivity" />

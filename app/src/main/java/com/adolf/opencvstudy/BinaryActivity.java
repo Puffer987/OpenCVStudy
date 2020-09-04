@@ -45,27 +45,26 @@ public class BinaryActivity extends AppCompatActivity {
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
     private SaveImgUtil mImgUtil;
+    private Bitmap mOrgBtm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_binary);
         ButterKnife.bind(this);
-        mImgUtil = new SaveImgUtil(mImgCachePath,mRVBeanList);
         mImgCachePath = new File(getExternalFilesDir(null), "/process");
 
-        String[] list = mImgCachePath.list();
-        for (String s : list) {
-            new File(mImgCachePath, s).delete();
-        }
-        mImgCachePath.mkdirs();
-        Toast.makeText(this, stringFromJNI(), Toast.LENGTH_SHORT).show();
+        mImgUtil = new SaveImgUtil(mImgCachePath,mRVBeanList);
+
+        String path = getIntent().getStringExtra("img");
+        mOrgBtm = BitmapFactory.decodeFile(path);
     }
 
     public void getContoursPic(Bitmap source) {
         Mat src = new Mat();
         Mat out = new Mat();
         Utils.bitmapToMat(source, src);
+        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGBA2BGRA);
         mImgUtil.saveMat(src,"原图");
         Imgproc.cvtColor(src, out, Imgproc.COLOR_BGR2GRAY);
         mImgUtil.saveMat(out,"灰度");
@@ -135,8 +134,9 @@ public class BinaryActivity extends AppCompatActivity {
         // 当 C 为正数，会过滤掉灰色区域，最终是白底，黑字。
         // 为 C 为负数，会过滤掉白色区域，文字区域在 blockSize 范围内的白色保留， 这样就变成了 黑底白字。也就是取反。
 
-        Mat src = new Mat();
+        Mat src = new Mat(btm.getHeight(),btm.getWidth(),CvType.CV_8UC3);
         Utils.bitmapToMat(btm, src);
+
         Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
         Mat out = new Mat();
 
@@ -160,8 +160,8 @@ public class BinaryActivity extends AppCompatActivity {
     @OnClick(R.id.btn_do)
     public void onViewClicked() {
         mRVBeanList.clear();
-        getContoursPic(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
-        adaptiveThreshold(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
+        getContoursPic(mOrgBtm);
+        adaptiveThreshold(mOrgBtm);
 
         ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
         GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);

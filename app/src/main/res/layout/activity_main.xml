@@ -1,29 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_horizontal|bottom"
     android:orientation="vertical"
-
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/btn_binary"
-        android:layout_width="200dp"
-        android:layout_height="80dp"
-        android:text="二值" />
+    <ImageView
+        android:id="@+id/iv_org"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter" />
 
-    <Button
-        android:id="@+id/btn_mor"
-        android:layout_width="200dp"
-        android:layout_height="80dp"
-        android:text="形态学" />
-    <Button
-        android:id="@+id/btn_edge"
-        android:layout_width="200dp"
-        android:layout_height="80dp"
-        android:text="边缘" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal|bottom"
+        android:orientation="vertical">
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btn_binary"
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:text="二值" />
+
+        <Button
+            android:id="@+id/btn_mor"
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:text="形态学" />
+
+        <Button
+            android:id="@+id/btn_blur"
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:text="模糊" />
+
+        <Button
+            android:id="@+id/btn_identify"
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:text="特征识别" />
+
+        <Button
+            android:id="@+id/btn_scan"
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:text="扫描仪" />
+    </LinearLayout>
+</RelativeLayout>
