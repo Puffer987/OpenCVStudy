@@ -8,17 +8,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.GridLayout;
 import android.widget.Toast;
 
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
+import com.adolf.opencvstudy.rv.ItemRVBean;
+import com.adolf.opencvstudy.utils.SaveImgUtil;
 
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
@@ -42,14 +42,16 @@ public class BinaryActivity extends AppCompatActivity {
     @BindView(R.id.rv_imgs)
     RecyclerView mRvImgs;
 
-    private List<String> mImgList = new ArrayList<>();
+    private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
+    private SaveImgUtil mImgUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_binary);
         ButterKnife.bind(this);
+        mImgUtil = new SaveImgUtil(mImgCachePath,mRVBeanList);
         mImgCachePath = new File(getExternalFilesDir(null), "/process");
 
         String[] list = mImgCachePath.list();
@@ -64,12 +66,12 @@ public class BinaryActivity extends AppCompatActivity {
         Mat src = new Mat();
         Mat out = new Mat();
         Utils.bitmapToMat(source, src);
-        saveMat(src);
+        mImgUtil.saveMat(src,"原图");
         Imgproc.cvtColor(src, out, Imgproc.COLOR_BGR2GRAY);
-        saveMat(out);
+        mImgUtil.saveMat(out,"灰度");
         Imgproc.threshold(out, out, 127, 255, Imgproc.THRESH_BINARY);
 
-        saveMat(out);
+        mImgUtil.saveMat(out,"阈值127");
 
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         // Imgproc.findContours(gray, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
@@ -91,7 +93,7 @@ public class BinaryActivity extends AppCompatActivity {
         mRgba.create(src.rows(), src.cols(), CvType.CV_8UC3);
         //绘制检测到的轮廓
         Imgproc.drawContours(mRgba, contours, -1, new Scalar(0, 255, 0), 5);
-        saveMat(mRgba);
+        mImgUtil.saveMat(mRgba,"轮廓");
 
         src.release();
         out.release();
@@ -139,16 +141,16 @@ public class BinaryActivity extends AppCompatActivity {
         Mat out = new Mat();
 
         Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 13, 5);
-        saveMat(out);
+        mImgUtil.saveMat(out,"均值，二值");
 
         Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
-        saveMat(out);
+        mImgUtil.saveMat(out,"均值，二值反");
 
         Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 13, 5);
-        saveMat(out);
+        mImgUtil.saveMat(out,"高斯，二值");
 
         Imgproc.adaptiveThreshold(src, out, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
-        saveMat(out);
+        mImgUtil.saveMat(out,"高斯，二值反");
 
         src.release();
         out.release();
@@ -157,34 +159,16 @@ public class BinaryActivity extends AppCompatActivity {
 
     @OnClick(R.id.btn_do)
     public void onViewClicked() {
-        mImgList.clear();
+        mRVBeanList.clear();
         getContoursPic(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
         adaptiveThreshold(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
 
-        ImgRVAdapter adapter = new ImgRVAdapter(mImgList, this);
+        ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
         GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         mRvImgs.setLayoutManager(manager);
         mRvImgs.setAdapter(adapter);
     }
 
-    private void saveBitmap(Bitmap source) {
-        File file = new File(mImgCachePath, "/" + System.currentTimeMillis() + ".jpg");
-        mImgList.add(file.getAbsolutePath());
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            source.compress(Bitmap.CompressFormat.JPEG, 80, out);
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveMat(Mat source) {
-        File file = new File(mImgCachePath, "/" + System.currentTimeMillis() + ".jpg");
-        Imgcodecs.imwrite(file.getAbsolutePath(), source);
-        mImgList.add(file.getAbsolutePath());
-    }
 
     public native String stringFromJNI();
 }

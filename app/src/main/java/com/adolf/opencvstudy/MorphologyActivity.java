@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
+import com.adolf.opencvstudy.rv.ItemRVBean;
+import com.adolf.opencvstudy.utils.SaveImgUtil;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -28,8 +30,10 @@ public class MorphologyActivity extends AppCompatActivity {
     private static final String TAG = "[jq]MorphologyActivity";
     @BindView(R.id.rv_imgs)
     RecyclerView mRvImgs;
-    private List<String> mImgList = new ArrayList<>();
+    private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
+    private SaveImgUtil mImgUtil;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,19 +41,15 @@ public class MorphologyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_morphology);
         ButterKnife.bind(this);
 
-        mImgCachePath = new File(getExternalFilesDir(null), "/process");
-        String[] list = mImgCachePath.list();
-        for (String s : list)
-            new File(mImgCachePath, s).delete();
-        mImgCachePath.mkdirs();
+        mImgUtil = new SaveImgUtil(mImgCachePath,mRVBeanList);
     }
 
     @OnClick(R.id.btn_do)
     public void onViewClicked() {
-        mImgList.clear();
+        mRVBeanList.clear();
         morphological(BitmapFactory.decodeResource(this.getResources(), R.drawable.handwrite));
 
-        ImgRVAdapter adapter = new ImgRVAdapter(mImgList, this);
+        ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
         GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         mRvImgs.setLayoutManager(manager);
         mRvImgs.setAdapter(adapter);
@@ -60,32 +60,34 @@ public class MorphologyActivity extends AppCompatActivity {
         Utils.bitmapToMat(source, src);
         Mat out = new Mat();
         Mat binary = new Mat();
+        Mat temp = new Mat();
 
         Imgproc.cvtColor(src, binary, Imgproc.COLOR_BGRA2GRAY);
-        Imgproc.adaptiveThreshold(binary, binary, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 13, 5);
-        saveMat(binary);
+        Imgproc.adaptiveThreshold(binary, binary, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
+        mImgUtil.saveMat(binary, "均值，二值");
 
         Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
         Imgproc.dilate(binary, out, element);
-        saveMat(out);
+        mImgUtil.saveMat(out, "膨胀:扩大高亮部分");
 
         Imgproc.erode(binary, out, element);
-        saveMat(out);
+        mImgUtil.saveMat(out, "腐蚀:缩小高亮部分");
 
         Imgproc.morphologyEx(binary, out, Imgproc.MORPH_OPEN, element);
-        saveMat(out);
+        mImgUtil.saveMat(out, "开运算：先腐蚀后膨胀--去除小白点");
 
         Imgproc.morphologyEx(binary, out, Imgproc.MORPH_CLOSE, element);
-        saveMat(out);
+        mImgUtil.saveMat(out, "闭运算：先膨胀后腐蚀--去除小黑点");
+
+
+        Mat element2 = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4));
+        Imgproc.morphologyEx(binary, temp, Imgproc.MORPH_OPEN, element);
+        Imgproc.erode(temp, out, element2);
+        mImgUtil.saveMat(out, "开运算+腐蚀");
 
         binary.release();
         src.release();
         out.release();
     }
 
-    private void saveMat(Mat source) {
-        File file = new File(mImgCachePath, "/" + System.currentTimeMillis() + ".jpg");
-        Imgcodecs.imwrite(file.getAbsolutePath(), source);
-        mImgList.add(file.getAbsolutePath());
-    }
 }

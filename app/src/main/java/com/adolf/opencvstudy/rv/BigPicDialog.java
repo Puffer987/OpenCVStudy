@@ -29,8 +29,8 @@ import butterknife.BindView;
  **/
 public class BigPicDialog extends Dialog {
 
-private ImageView mBigImg;
-private String imgPath;
+    private ImageView mBigImg;
+    private String imgPath;
 
     public BigPicDialog(@NonNull Context context, @StyleRes int themeResId) {
         super(context, themeResId);
@@ -44,30 +44,14 @@ private String imgPath;
         // setCanceledOnTouchOutside(false);
 
         //初始化界面控件
-        initView();
-
+        mBigImg = findViewById(R.id.iv_big);
         //初始化界面数据
-        initData();
+        mBigImg.setImageBitmap(BitmapFactory.decodeFile(imgPath));
         //初始化界面控件的事件
 
         mBigImg.setOnClickListener(v -> {
             this.dismiss();
         });
-    }
-
-    /**
-     * 初始化界面控件
-     */
-    private void initView() {
-        mBigImg = findViewById(R.id.iv_big);
-    }
-
-    /**
-     * 初始化界面控件的显示数据
-     */
-    private void initData() {
-        //如果用户自定了title和message
-        mBigImg.setImageBitmap(BitmapFactory.decodeFile(imgPath));
     }
 
 

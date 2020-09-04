@@ -1,21 +1,17 @@
 package com.adolf.opencvstudy.rv;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.adolf.opencvstudy.R;
 import com.bumptech.glide.Glide;
-import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.List;
@@ -27,13 +23,13 @@ import java.util.List;
  * @create: 2020-09-02 17:36
  **/
 public class ImgRVAdapter extends RecyclerView.Adapter<ImgRVAdapter.ViewHolder> {
-    private List<String> mImgList;
+    private List<ItemRVBean> mItemList;
     private Context mContext;
     private BigPicDialog myDialog;
 
 
-    public ImgRVAdapter(List<String> imgList, Context context) {
-        mImgList = imgList;
+    public ImgRVAdapter(List<ItemRVBean> itemList, Context context) {
+        mItemList = itemList;
         mContext = context;
     }
 
@@ -51,12 +47,13 @@ public class ImgRVAdapter extends RecyclerView.Adapter<ImgRVAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         // Bitmap bitmap = BitmapFactory.decodeFile(mImgList.get(position));
         // Picasso.with(mContext).load(new File(mImgList.get(position))).into( holder.mImgItem);
-        Glide.with(mContext).load(new File(mImgList.get(position))).override(500, 500).into(holder.mImgItem);
+        Glide.with(mContext).load(new File(mItemList.get(position).getImgPath())).override(500, 500).into(holder.mItemImg);
 
+        holder.mItemTitle.setText(mItemList.get(position).getImgTitle());
 
-        holder.mImgItem.setOnClickListener(view -> {
-            myDialog =new BigPicDialog(mContext,R.style.BigPicDialog);
-            myDialog.setImgPath(mImgList.get(position));
+        holder.mItemImg.setOnClickListener(view -> {
+            myDialog = new BigPicDialog(mContext, R.style.BigPicDialog);
+            myDialog.setImgPath(mItemList.get(position).getImgPath());
             myDialog.show();
         });
 
@@ -64,16 +61,17 @@ public class ImgRVAdapter extends RecyclerView.Adapter<ImgRVAdapter.ViewHolder> 
 
     @Override
     public int getItemCount() {
-        return mImgList.size();
+        return mItemList.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView mImgItem;
+        ImageView mItemImg;
+        TextView mItemTitle;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            mImgItem = itemView.findViewById(R.id.iv_item);
-
+            mItemImg = itemView.findViewById(R.id.iv_item);
+            mItemTitle = itemView.findViewById(R.id.tv_title);
         }
     }
 }
