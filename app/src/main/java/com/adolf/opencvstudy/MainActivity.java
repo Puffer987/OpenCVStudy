@@ -58,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
 
         mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
 
+        Intent intent = new Intent();
+        intent.putExtra("img", mImg.getAbsolutePath());
+        intent.setClass(this, ScannerActivity.class);
+        startActivity(intent);
         // startActivity(new Intent(this,JavaCameraViewActivity.class));
     }
 

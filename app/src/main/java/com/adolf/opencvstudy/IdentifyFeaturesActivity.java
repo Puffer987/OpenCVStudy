@@ -76,32 +76,32 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         Mat src = new Mat();
         Utils.bitmapToMat(source, src);
         Mat out = new Mat();
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGBA2BGRA);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGBA2BGRA);
         mImgUtil.saveMat(src, "原图");
 
         Mat gray = new Mat();
         Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
 
         Mat cannyEdge = new Mat();
-        Imgproc.Canny(gray, cannyEdge ,10,100);
+        Imgproc.Canny(gray, cannyEdge, 10, 100);
 
-        Imgproc.HoughLinesP(cannyEdge,out,1,Math.PI/180,50,20,20);
+        Imgproc.HoughLinesP(cannyEdge, out, 1, Math.PI / 180, 50, 20, 20);
 
         Mat lines = new Mat();
-        lines.create(cannyEdge.rows(),cannyEdge.cols(),CvType.CV_8UC1);
+        lines.create(cannyEdge.rows(), cannyEdge.cols(), CvType.CV_8UC1);
 
         for (int i = 0; i < out.cols(); i++) {
-            double[] points = out.get(0,i);
-            double x1,y1,x2,y2;
+            double[] points = out.get(0, i);
+            double x1, y1, x2, y2;
             x1 = points[0];
             y1 = points[1];
             x2 = points[2];
             y2 = points[3];
 
-            Point p1 = new Point(x1,y1);
-            Point p2 = new Point(x2,y2);
+            Point p1 = new Point(x1, y1);
+            Point p2 = new Point(x2, y2);
 
-            Imgproc.line(lines,p1,p2,new Scalar(255,0,0),1);
+            Imgproc.line(lines, p1, p2, new Scalar(255, 0, 0), 1);
 
         }
         mImgUtil.saveMat(lines, "line");
@@ -112,7 +112,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         Mat src = new Mat();
         Utils.bitmapToMat(source, src);
         Mat out = new Mat();
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGBA2BGRA);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGBA2BGRA);
         mImgUtil.saveMat(src, "原图");
         Imgproc.cvtColor(src, out, Imgproc.COLOR_BGR2GRAY);
 
@@ -144,7 +144,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         Utils.bitmapToMat(source, src);
 
         Mat out = new Mat();
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGBA2BGRA);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGBA2BGRA);
         mImgUtil.saveMat(src, "原图");
         Imgproc.cvtColor(src, out, Imgproc.COLOR_BGR2GRAY);
 
@@ -168,7 +168,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         Mat src = new Mat();
         Utils.bitmapToMat(source, src);
         Mat out = new Mat();
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGBA2BGRA);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGBA2BGRA);
         mImgUtil.saveMat(src, "原图");
         Imgproc.cvtColor(src, out, Imgproc.COLOR_BGR2GRAY);
 
@@ -186,7 +186,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         Mat src = new Mat();
         Utils.bitmapToMat(source, src);
         Mat out = new Mat();
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGBA2BGRA);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGBA2BGRA);
         mImgUtil.saveMat(src, "原图");
 
         Imgproc.cvtColor(src, out, Imgproc.COLOR_BGR2GRAY);

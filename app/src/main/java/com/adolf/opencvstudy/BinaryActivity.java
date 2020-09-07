@@ -76,9 +76,8 @@ public class BinaryActivity extends AppCompatActivity {
         // Imgproc.findContours(gray, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
         // Imgproc.findContours(gray,contours,new Mat(),Imgproc.RETR_LIST,Imgproc.CHAIN_APPROX_NONE);
 
-        Log.d(TAG, "getContoursPic: " + contours.size());
-
         Imgproc.findContours(out, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        Log.d(TAG, "getContoursPic: " + contours.size());
         double maxVal = 0;
         int maxValIdx = 0;
         for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
