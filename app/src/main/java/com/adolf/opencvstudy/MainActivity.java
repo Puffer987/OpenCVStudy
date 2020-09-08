@@ -5,12 +5,16 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -29,11 +33,13 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final String TAG = "[jq]MainActivity";
+    private static final int REQUEST_CODE_CAMERA = 0x1001;
     @BindView(R.id.iv_org)
     ImageView mIvOrg;
     private String[] needPermissions = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA
+            Manifest.permission.CAMERA,
+            Manifest.permission.READ_EXTERNAL_STORAGE
     };
 
     private List<String> askPermissions = new ArrayList<>();
@@ -46,23 +52,22 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         initPermission();
 
-        mImg = new File(getExternalFilesDir(null), "/temp.jpg");
-        try {
-            FileOutputStream out = new FileOutputStream(mImg);
-            BitmapFactory.decodeResource(getResources(), R.drawable.test).compress(Bitmap.CompressFormat.JPEG, 90, out);
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!OpenCVLoader.initDebug()) {
+            Log.e(TAG, "OpenCV library 未加载成功");
+        } else {
+            Log.e(TAG, "OpenCV library 加载成功");
         }
 
+        mImg = new File(getExternalFilesDir(null), "/temp1.jpg");
         mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
-
-        Intent intent = new Intent();
-        intent.putExtra("img", mImg.getAbsolutePath());
-        intent.setClass(this, ScannerActivity.class);
-        startActivity(intent);
-        // startActivity(new Intent(this,JavaCameraViewActivity.class));
+        // try {
+        //     FileOutputStream out = new FileOutputStream(mImg);
+        //     BitmapFactory.decodeResource(getResources(), R.drawable.test).compress(Bitmap.CompressFormat.JPEG, 90, out);
+        //     out.flush();
+        //     out.close();
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
     }
 
     private void initPermission() {
@@ -98,19 +103,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (!OpenCVLoader.initDebug()) {
-            Log.e(TAG, "OpenCV library 未加载成功");
-        } else {
-            Log.e(TAG, "OpenCV library 加载成功");
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        switch (requestCode) {
+            case REQUEST_CODE_CAMERA:
+                if (mImg.exists()) {
+                    mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
+                } else
+                    Toast.makeText(this, "图片未拍摄", Toast.LENGTH_SHORT).show();
+                break;
         }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
 
     public native String stringFromJNI();
 
-    @OnClick({R.id.btn_binary, R.id.btn_scan, R.id.btn_mor, R.id.btn_blur, R.id.btn_identify})
+    @OnClick({R.id.btn_binary, R.id.btn_scan, R.id.btn_mor, R.id.btn_blur, R.id.btn_identify, R.id.btn_shot})
     public void onViewClicked(View view) {
         Intent intent = new Intent();
         intent.putExtra("img", mImg.getAbsolutePath());
@@ -134,6 +142,13 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btn_scan:
                 intent.setClass(this, ScannerActivity.class);
                 startActivity(intent);
+                break;
+            case R.id.btn_shot:
+                Log.d(TAG, "FilePath:" + mImg.getAbsolutePath());
+                Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE); //指定拍照
+                Uri uri = Uri.fromFile(mImg);
+                i.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                startActivityForResult(i, REQUEST_CODE_CAMERA);
                 break;
         }
 
