@@ -13,23 +13,23 @@
 
         <com.adolf.opencvstudy.utils.FreedomCropView
             android:id="@+id/fcv"
-            android:layout_width="wrap_content"
-            android:layout_height="400dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:scaleType="fitCenter" />
 
         <ImageView
             android:id="@+id/iv_crop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_width="0dp"
+            android:layout_height="400dp"
+            android:layout_weight="1"
+            android:visibility="visible"/>
     </LinearLayout>
 
     <Button
         android:id="@+id/btn_crop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/operate"
         android:layout_centerHorizontal="true" />
 
 
@@ -37,5 +37,6 @@
         android:id="@+id/rv_imgs"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/operate" />
+        android:layout_marginTop="500dp"
+        />
 </RelativeLayout>

@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -58,7 +59,12 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "OpenCV library 加载成功");
         }
 
+        // 防止报错：exposed beyond app through ClipData.Item.getUri()
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+
         mImg = new File(getExternalFilesDir(null), "/temp1.jpg");
+        if(mImg.exists())
         mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
         // try {
         //     FileOutputStream out = new FileOutputStream(mImg);

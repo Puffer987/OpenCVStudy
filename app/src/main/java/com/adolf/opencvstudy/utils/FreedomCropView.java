@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
@@ -27,7 +26,8 @@ import java.util.List;
  **/
 public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageView {
     private static final String TAG = "[jq]FreedomCropView";
-    private static final float KEY_CLOSE = 20.0f;
+    private static final float AREA_CORNER = 15.0f;
+    private static final float AREA_CLOSE = 15.0f;
 
     private List<PointF> mOrgCorners = new ArrayList<>();
     private PointF lt = new PointF(-10, -10);
@@ -62,6 +62,7 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         if (points.size() != 4)
             return;
         this.mOrgCorners = points;
+        initCorner();
     }
 
     private void init() {
@@ -91,7 +92,7 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
                 Log.e(TAG, "err");
             }
         }
-        Log.i(TAG, "角点初始化成功！！");
+        // Log.i(TAG, "角点初始化成功：lt="+lt.toString()+", rt="+rt.toString()+", rb="+rb.toString()+", lb="+lb.toString());
         postInvalidate();
     }
 
@@ -99,8 +100,6 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         initMatrix();
-        if (mScaleX != 1 || mScaleY != 1 || mTransX != 0 || mTransY != 0)
-            initCorner();
         mDisplayRect = getImgDisplayRect();
         Log.d(TAG, "图片展示区域: " + mDisplayRect);
     }
@@ -129,7 +128,7 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
                 mCloseTo = Corner.getCloseTo(mTouchX, mTouchY, lt, rt, rb, lb);
                 return true;
             case MotionEvent.ACTION_UP:
-                mTransX = -1;
+                mTouchX = -1;
                 mTouchY = -1;
                 return true;
             case MotionEvent.ACTION_MOVE:
@@ -149,7 +148,6 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         float moveX = mTouchX - preTouchX;
         float moveY = mTouchY - preTouchY;
         switch (mCloseTo) {
-
             case CORNER_LEFT_TOP:
                 lt.x = move(lt.x, moveX, mDisplayRect.left, rt.x);
                 lt.y = move(lt.y, moveY, mDisplayRect.top, lb.y);
@@ -177,10 +175,10 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
                 lb.y = move(lb.y, moveY, lt.y, mDisplayRect.bottom);
                 rb.x = move(rb.x, moveX, lb.x, mDisplayRect.right);
                 rb.y = move(rb.y, moveY, rt.y, mDisplayRect.bottom);
-                if (lt.x == mDisplayRect.left + KEY_CLOSE || lt.y == mDisplayRect.top + KEY_CLOSE ||
-                        rt.x == mDisplayRect.right - KEY_CLOSE || rt.y == mDisplayRect.top + KEY_CLOSE ||
-                        lb.x == mDisplayRect.left + KEY_CLOSE || lb.y == mDisplayRect.bottom - KEY_CLOSE ||
-                        rb.x == mDisplayRect.right - KEY_CLOSE || rb.y == mDisplayRect.bottom - KEY_CLOSE) {
+                if (lt.x == mDisplayRect.left + 0 || lt.y == mDisplayRect.top + 0 ||
+                        rt.x == mDisplayRect.right - 0 || rt.y == mDisplayRect.top + 0 ||
+                        lb.x == mDisplayRect.left + 0 || lb.y == mDisplayRect.bottom - 0 ||
+                        rb.x == mDisplayRect.right - 0 || rb.y == mDisplayRect.bottom - 0) {
                     lt.x = temp[0];
                     lt.y = temp[1];
                     rt.x = temp[2];
@@ -197,12 +195,12 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
     }
 
     private float move(float org, float move, float lower, float upper) {
-        if (org + move > lower + KEY_CLOSE && org + move < upper - KEY_CLOSE) {
+        if (org + move > lower && org + move < upper) {
             org += move;
-        } else if (org + move < lower + KEY_CLOSE) {
-            org = lower + KEY_CLOSE;
-        } else if (org + move > upper - KEY_CLOSE) {
-            org = upper - KEY_CLOSE;
+        } else if (org + move < lower) {
+            org = lower;
+        } else if (org + move > upper) {
+            org = upper;
         }
         return org;
     }
@@ -216,11 +214,11 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         CORNER_RIGHT_BOTTOM;
 
         private static Corner getCloseTo(float x, float y, PointF lt, PointF rt, PointF rb, PointF lb) {
-            boolean close2LT = Math.sqrt(Math.pow(lt.x - x, 2) + Math.pow(lt.y - y, 2)) < KEY_CLOSE;
-            boolean close2RT = Math.sqrt(Math.pow(rt.x - x, 2) + Math.pow(rt.y - y, 2)) < KEY_CLOSE;
-            boolean close2RB = Math.sqrt(Math.pow(rb.x - x, 2) + Math.pow(rb.y - y, 2)) < KEY_CLOSE;
-            boolean close2LB = Math.sqrt(Math.pow(lb.x - x, 2) + Math.pow(lb.y - y, 2)) < KEY_CLOSE;
-            boolean outside = (x > rt.x || x > rb.x) || (x < lt.x || x < lb.x)||(y > lb.y || y > rb.y) || (y < lt.y || y < rt.y);
+            boolean close2LT = Math.sqrt(Math.pow(lt.x - x, 2) + Math.pow(lt.y - y, 2)) < AREA_CORNER;
+            boolean close2RT = Math.sqrt(Math.pow(rt.x - x, 2) + Math.pow(rt.y - y, 2)) < AREA_CORNER;
+            boolean close2RB = Math.sqrt(Math.pow(rb.x - x, 2) + Math.pow(rb.y - y, 2)) < AREA_CORNER;
+            boolean close2LB = Math.sqrt(Math.pow(lb.x - x, 2) + Math.pow(lb.y - y, 2)) < AREA_CORNER;
+            boolean outside = (x > rt.x || x > rb.x) || (x < lt.x || x < lb.x) || (y > lb.y || y > rb.y) || (y < lt.y || y < rt.y);
 
             if (close2LT) {
                 return Corner.CORNER_LEFT_TOP;
@@ -232,10 +230,9 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
                 return Corner.CORNER_LEFT_BOTTOM;
             } else if (outside) {
                 return Corner.OUTSIDE;
-            }else {
+            } else {
                 return Corner.INSIDE;
             }
-
         }
     }
 
@@ -263,6 +260,16 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         return new PointF((float) ((arrX[1] + arrX[2]) / 2), (float) ((arrY[1] + arrY[2]) / 2));
     }
 
+    public List<org.opencv.core.Point> getCropCorners() {
+        List<org.opencv.core.Point> cropCorners = new ArrayList<>();
+        cropCorners.add(new org.opencv.core.Point((lt.x - mTransX) / mScaleX, (lt.y - mTransY) / mScaleY));
+        cropCorners.add(new org.opencv.core.Point((rt.x - mTransX) / mScaleX, (rt.y - mTransY) / mScaleY));
+        cropCorners.add(new org.opencv.core.Point((rb.x - mTransX) / mScaleX, (rb.y - mTransY) / mScaleY));
+        cropCorners.add(new org.opencv.core.Point((lb.x - mTransX) / mScaleX, (lb.y - mTransY) / mScaleY));
+
+        return cropCorners;
+    }
+
     /**
      * 获得变换Matrix
      */
@@ -272,7 +279,8 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         mScaleY = mMatrixValues[Matrix.MSCALE_Y];
         mTransX = mMatrixValues[Matrix.MTRANS_X];
         mTransY = mMatrixValues[Matrix.MTRANS_Y];
-        Log.d(TAG, "Matrix[ 缩放X:" + mScaleX + ", 缩放Y:" + mScaleX
+
+        Log.i(TAG, "Matrix[ 缩放X:" + mScaleX + ", 缩放Y:" + mScaleX
                 + ", 平移X:" + mTransX + ", 平移Y:" + mTransY + "]");
     }
 
