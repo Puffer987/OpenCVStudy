@@ -8,23 +8,19 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
 import com.adolf.opencvstudy.rv.ItemRVBean;
-import com.adolf.opencvstudy.utils.SaveImgUtil;
+import com.adolf.opencvstudy.utils.ImgUtil;
 
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +40,7 @@ public class BinaryActivity extends AppCompatActivity {
 
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
-    private SaveImgUtil mImgUtil;
+    private ImgUtil mImgUtil;
     private Bitmap mOrgBtm;
 
     @Override
@@ -54,7 +50,7 @@ public class BinaryActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         mImgCachePath = new File(getExternalFilesDir(null), "/process");
 
-        mImgUtil = new SaveImgUtil(mImgCachePath,mRVBeanList);
+        mImgUtil = new ImgUtil(mImgCachePath,mRVBeanList);
 
         String path = getIntent().getStringExtra("img");
         mOrgBtm = BitmapFactory.decodeFile(path);

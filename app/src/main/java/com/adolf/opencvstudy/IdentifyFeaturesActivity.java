@@ -7,11 +7,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
 import com.adolf.opencvstudy.rv.ItemRVBean;
-import com.adolf.opencvstudy.utils.SaveImgUtil;
+import com.adolf.opencvstudy.utils.ImgUtil;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -20,6 +21,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
@@ -32,6 +34,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class IdentifyFeaturesActivity extends AppCompatActivity {
+    private static final String TAG = "[jq]IdentifyFeaturesActivity";
     @BindView(R.id.rv_imgs)
     RecyclerView mRvImgs;
     @BindView(R.id.btn_do)
@@ -39,7 +42,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
 
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
-    private SaveImgUtil mImgUtil;
+    private ImgUtil mImgUtil;
     private Bitmap mOrgBtm;
 
     @Override
@@ -49,7 +52,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         mImgCachePath = new File(getExternalFilesDir(null), "/process");
-        mImgUtil = new SaveImgUtil(mImgCachePath, mRVBeanList);
+        mImgUtil = new ImgUtil(mImgCachePath, mRVBeanList);
 
         String path = getIntent().getStringExtra("img");
         mOrgBtm = BitmapFactory.decodeFile(path);
@@ -62,10 +65,10 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
             @Override
             public void run() {
                 devGaussian(mOrgBtm);
-                canny(mOrgBtm);
+                // canny(mOrgBtm);
                 sobel(mOrgBtm);
                 harris(mOrgBtm);
-                houghLines(mOrgBtm);
+                // houghLines(mOrgBtm);
                 runOnUiThread(() -> showImg());
             }
         }).start();
@@ -161,7 +164,82 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         Core.convertScaleAbs(grad_y, abs_grad_y);
 
         Core.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 1, out);
-        mImgUtil.saveMat(out, "结果");
+        mImgUtil.saveMat(out, "sobel");
+    }
+    private void findLines(Mat src) {
+        Mat dst = new Mat();
+        Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
+
+        //--------------------------
+
+        Mat samples = new Mat(src.rows() * src.cols(), 3, CvType.CV_32F);
+        for (int y = 0; y < src.rows(); y++) {
+            for (int x = 0; x < src.cols(); x++)
+                for (int z = 0; z < 3; z++) {
+                    samples.put(x + y * src.cols(), z, src.get(y, x)[z]);
+                }
+        }
+        int clusterCount = 2;
+        Mat labels = new Mat();
+        int attempts = 5;
+
+        Mat centers = new Mat();
+        Core.kmeans(samples, clusterCount, labels, new
+                        TermCriteria(TermCriteria.MAX_ITER | TermCriteria.EPS, 10000, 0.0001),
+                attempts, Core.KMEANS_PP_CENTERS, centers);
+
+        double dstCenter0 = calcWhiteDist(centers.get(0, 0)[0],
+                centers.get(0, 1)[0], centers.get(0, 2)[0]);
+        double dstCenter1 = calcWhiteDist(centers.get(1, 0)[0],
+                centers.get(1, 1)[0], centers.get(1, 2)[0]);
+        int paperCluster = (dstCenter0 < dstCenter1) ? 0 : 1;
+        Mat srcRes = new Mat(src.size(), src.type());
+        Mat srcGray = new Mat();
+        for (int y = 0; y < src.rows(); y++) {
+            for (int x = 0; x < src.cols(); x++) {
+                int cluster_idx = (int) labels.get(x + y * src.cols(), 0)[0];
+                if (cluster_idx != paperCluster) {
+                    srcRes.put(y, x, 0, 0, 0, 255);
+                } else {
+                    srcRes.put(y, x, 255, 255, 255, 255);
+                }
+            }
+        }
+        mImgUtil.saveMat(srcRes, "srcRes");
+        //------------------------------------------------------------------------------------------
+
+
+        Imgproc.Canny(dst, dst, 50, 150);
+        mImgUtil.saveMat(dst, "canny");
+
+        //threshold:要”检测” 一条直线所需最少的的曲线交点 。
+        Imgproc.HoughLinesP(dst, dst, 1, Math.PI / 180, 100, 20, 100);
+
+        Mat lines = new Mat();
+        lines.create(src.rows(), src.cols(), CvType.CV_8UC1);
+
+        Log.d(TAG, "lines: " + dst.rows());
+
+        for (int i = 0; i < dst.rows(); i++) {
+            double[] points = dst.get(i, 0);
+            double x1, y1, x2, y2;
+            x1 = points[0];
+            y1 = points[1];
+            x2 = points[2];
+            y2 = points[3];
+
+            Point p1 = new Point(x1, y1);
+            Point p2 = new Point(x2, y2);
+
+            Imgproc.line(lines, p1, p2, new Scalar(255, 0, 0), 1);
+
+        }
+        mImgUtil.saveMat(lines, "line");
+
+    }
+    static double calcWhiteDist(double r, double g, double b) {
+        return Math.sqrt(Math.pow(255 - r, 2) +
+                Math.pow(255 - g, 2) + Math.pow(255 - b, 2));
     }
 
     private void canny(Bitmap source) {

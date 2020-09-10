@@ -10,12 +10,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
 import com.adolf.opencvstudy.rv.ItemRVBean;
-import com.adolf.opencvstudy.utils.SaveImgUtil;
+import com.adolf.opencvstudy.utils.ImgUtil;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
@@ -32,7 +31,7 @@ public class MorphologyActivity extends AppCompatActivity {
     RecyclerView mRvImgs;
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
-    private SaveImgUtil mImgUtil;
+    private ImgUtil mImgUtil;
     private Bitmap mOrgBtm;
 
 
@@ -42,7 +41,7 @@ public class MorphologyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_morphology);
         ButterKnife.bind(this);
         mImgCachePath = new File(getExternalFilesDir(null), "/process");
-        mImgUtil = new SaveImgUtil(mImgCachePath,mRVBeanList);
+        mImgUtil = new ImgUtil(mImgCachePath,mRVBeanList);
 
         String path = getIntent().getStringExtra("img");
         mOrgBtm = BitmapFactory.decodeFile(path);

@@ -26,8 +26,7 @@ import java.util.List;
  **/
 public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageView {
     private static final String TAG = "[jq]FreedomCropView";
-    private static final float AREA_CORNER = 15.0f;
-    private static final float AREA_CLOSE = 15.0f;
+    private static final float CORNER_TOUCH_AREA = 25.0f;
 
     private List<PointF> mOrgCorners = new ArrayList<>();
     private PointF lt = new PointF(-10, -10);
@@ -77,6 +76,9 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         mCornerPaint.setColor(Color.parseColor("#AAFF6666"));
     }
 
+    /**
+     * 将传入的Corners付给对应的Point
+     */
     private void initCorner() {
         PointF center = getCenterPoint(mOrgCorners);
         for (int i = 0; i < mOrgCorners.size(); i++) {
@@ -214,10 +216,10 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         CORNER_RIGHT_BOTTOM;
 
         private static Corner getCloseTo(float x, float y, PointF lt, PointF rt, PointF rb, PointF lb) {
-            boolean close2LT = Math.sqrt(Math.pow(lt.x - x, 2) + Math.pow(lt.y - y, 2)) < AREA_CORNER;
-            boolean close2RT = Math.sqrt(Math.pow(rt.x - x, 2) + Math.pow(rt.y - y, 2)) < AREA_CORNER;
-            boolean close2RB = Math.sqrt(Math.pow(rb.x - x, 2) + Math.pow(rb.y - y, 2)) < AREA_CORNER;
-            boolean close2LB = Math.sqrt(Math.pow(lb.x - x, 2) + Math.pow(lb.y - y, 2)) < AREA_CORNER;
+            boolean close2LT = Math.sqrt(Math.pow(lt.x - x, 2) + Math.pow(lt.y - y, 2)) < CORNER_TOUCH_AREA;
+            boolean close2RT = Math.sqrt(Math.pow(rt.x - x, 2) + Math.pow(rt.y - y, 2)) < CORNER_TOUCH_AREA;
+            boolean close2RB = Math.sqrt(Math.pow(rb.x - x, 2) + Math.pow(rb.y - y, 2)) < CORNER_TOUCH_AREA;
+            boolean close2LB = Math.sqrt(Math.pow(lb.x - x, 2) + Math.pow(lb.y - y, 2)) < CORNER_TOUCH_AREA;
             boolean outside = (x > rt.x || x > rb.x) || (x < lt.x || x < lb.x) || (y > lb.y || y > rb.y) || (y < lt.y || y < rt.y);
 
             if (close2LT) {
@@ -260,6 +262,9 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         return new PointF((float) ((arrX[1] + arrX[2]) / 2), (float) ((arrY[1] + arrY[2]) / 2));
     }
 
+    /**
+     * 提供外界截图框
+     */
     public List<org.opencv.core.Point> getCropCorners() {
         List<org.opencv.core.Point> cropCorners = new ArrayList<>();
         cropCorners.add(new org.opencv.core.Point((lt.x - mTransX) / mScaleX, (lt.y - mTransY) / mScaleY));
@@ -280,8 +285,7 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         mTransX = mMatrixValues[Matrix.MTRANS_X];
         mTransY = mMatrixValues[Matrix.MTRANS_Y];
 
-        Log.i(TAG, "Matrix[ 缩放X:" + mScaleX + ", 缩放Y:" + mScaleX
-                + ", 平移X:" + mTransX + ", 平移Y:" + mTransY + "]");
+        Log.i(TAG, "Matrix[ 缩放X:" + mScaleX + ", 缩放Y:" + mScaleX + ", 平移X:" + mTransX + ", 平移Y:" + mTransY + "]");
     }
 
     /**

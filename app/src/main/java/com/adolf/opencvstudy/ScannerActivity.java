@@ -15,9 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
 import com.adolf.opencvstudy.rv.ItemRVBean;
 import com.adolf.opencvstudy.utils.FreedomCropView;
-import com.adolf.opencvstudy.utils.SaveImgUtil;
+import com.adolf.opencvstudy.utils.ImgUtil;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -26,6 +27,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
@@ -47,9 +49,7 @@ public class ScannerActivity extends AppCompatActivity {
     ImageView mIvCrop;
 
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
-    private File mImgCachePath;
-    private SaveImgUtil mImgUtil;
-    private Bitmap mOrgBtm;
+    private ImgUtil mImgUtil;
     private Mat mSrc;
     private ProgressDialog progressDialog;
 
@@ -59,25 +59,26 @@ public class ScannerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scanner);
         ButterKnife.bind(this);
 
-        mImgCachePath = new File(getExternalFilesDir(null), "/process");
-        mImgUtil = new SaveImgUtil(mImgCachePath, mRVBeanList);
+        File imgCachePath = new File(getExternalFilesDir(null), "/process");
+        mImgUtil = new ImgUtil(imgCachePath, mRVBeanList);
 
         String path = getIntent().getStringExtra("img");
-        mOrgBtm = BitmapFactory.decodeFile(path);
-        mFcv.setImageBitmap(mOrgBtm);
-        mIvCrop.setImageBitmap(mOrgBtm);
+        Bitmap orgBtm = BitmapFactory.decodeFile(path);
+
+        float scale = 800f / orgBtm.getWidth();
+        Bitmap smallBtm = mImgUtil.zoomImage(orgBtm, scale);
+        mFcv.setImageBitmap(smallBtm);
+        mIvCrop.setImageBitmap(smallBtm);
 
         mSrc = new Mat();
-        Utils.bitmapToMat(mOrgBtm, mSrc);
+        Utils.bitmapToMat(smallBtm, mSrc);
         Imgproc.cvtColor(mSrc, mSrc, Imgproc.COLOR_RGB2BGRA);
 
         initProgressDialog();
 
         progressDialog.show();
         new Thread(() -> {
-            // correctPerspective(mSrc);
             scanning(mSrc);
-            // findCanny(mSrc);
             runOnUiThread(() -> showImg());
         }).start();
     }
@@ -97,21 +98,12 @@ public class ScannerActivity extends AppCompatActivity {
         Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
         // mImgUtil.saveMat(dst, "gray");
 
-        // Imgproc.GaussianBlur(dst, dst, new org.opencv.core.Size(7, 7), 5);
-        // mImgUtil.saveMat(dst, "GaussianBlur");
+        Imgproc.GaussianBlur(dst, dst, new org.opencv.core.Size(7, 7), 5);
+        mImgUtil.saveMat(dst, "GaussianBlur");
 
         Imgproc.adaptiveThreshold(dst, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 81, 5);
         mImgUtil.saveMat(dst, "自适应阈值");
 
-        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
-        // Imgproc.morphologyEx(dst,dst, Imgproc.MORPH_OPEN,element);
-        // mImgUtil.saveMat(dst, "开");
-
-        // Imgproc.dilate(dst,dst,element);
-        // mImgUtil.saveMat(dst, "膨胀");
-
-        // Imgproc.Canny(dst, dst, 100, 50);
-        // mImgUtil.saveMat(dst, "Canny");
 
         /**
          * contours : 所有的闭合轮廓
@@ -128,7 +120,7 @@ public class ScannerActivity extends AppCompatActivity {
                 index = i;
             }
         }
-        Mat drawing = new Mat(src.rows(), src.cols(), CvType.CV_8UC1);
+        Mat drawing = Mat.zeros(src.size(), CvType.CV_8UC1);
         Imgproc.drawContours(drawing, contours, index, new Scalar(255), 1);
         mImgUtil.saveMat(drawing, "轮廓");
 
@@ -139,152 +131,61 @@ public class ScannerActivity extends AppCompatActivity {
          */
         MatOfPoint2f cure = new MatOfPoint2f(contours.get(index).toArray());
         MatOfPoint2f approxCure = new MatOfPoint2f();
-        Imgproc.approxPolyDP(cure, approxCure, contours.size() * 0.05, true);
+        Imgproc.approxPolyDP(cure, approxCure, contours.size() * 0.15, true);
 
+
+        Log.d(TAG, "角点个数: " + approxCure.rows());
         List<Point> corners = new ArrayList<>();
         for (int i = 0; i < approxCure.rows(); i++) {
             Point temp = new Point(approxCure.get(i, 0)[0], approxCure.get(i, 0)[1]);
-            Log.d(TAG, "corners: " + temp.toString());
-            Imgproc.circle(drawing, temp, 5, new Scalar(255), 10);
+            // Log.d(TAG, "corners: " + temp.toString());
+            Imgproc.circle(drawing, temp, 5, new Scalar(255), 1);
             corners.add(temp);
         }
         mImgUtil.saveMat(drawing, "point");
 
-        if (corners.size() == 4) {
-            List<PointF> points = new ArrayList<>();
-            for (int i = 0; i < corners.size(); i++) {
-                points.add(new PointF((int) corners.get(i).x, (int) corners.get(i).y));
+
+        Rect borderRect = Imgproc.boundingRect(approxCure);
+
+
+        if (borderRect.height > mSrc.height() * 0.3 && borderRect.width > mSrc.width() * 0.3) {
+            if (corners.size() == 4) {
+                List<PointF> points = new ArrayList<>();
+                for (int i = 0; i < corners.size(); i++) {
+                    points.add(new PointF((int) corners.get(i).x, (int) corners.get(i).y));
+                }
+                mFcv.setOrgCorners(points);
+            } else if (corners.size() > 1) {
+                Rect rect = Imgproc.boundingRect(approxCure);
+                Point tl = rect.tl();
+                Point br = rect.br();
+                PointF lt = new PointF((float) tl.x, (float) tl.y);
+                PointF rb = new PointF((float) br.x, (float) br.y);
+                PointF rt = new PointF((float) tl.x, (float) br.y);
+                PointF lb = new PointF((float) br.x, (float) tl.y);
+                List<PointF> points = new ArrayList<>();
+                points.add(lt);
+                points.add(rt);
+                points.add(rb);
+                points.add(lb);
+                mFcv.setOrgCorners(points);
+
+                Log.d(TAG, "rect: " + rect.toString());
+                Imgproc.rectangle(drawing, rect, new Scalar(255), 5);
+                mImgUtil.saveMat(drawing, "rect");
             }
-            mFcv.setOrgCorners(points);
-            // perspective(src, corners);
         } else {
-            Rect rect = Imgproc.boundingRect(approxCure);
-            Point tl = rect.tl();
-            Point br = rect.br();
-            PointF lt = new PointF((float) tl.x, (float) tl.y);
-            PointF rb = new PointF((float) br.x, (float) br.y);
-            PointF rt = new PointF((float) tl.x, (float) br.y);
-            PointF lb = new PointF((float) br.x, (float) tl.y);
-            List<PointF> points = new ArrayList<>();
-            points.add(lt);
-            points.add(rt);
-            points.add(rb);
-            points.add(lb);
-            mFcv.setOrgCorners(points);
+            Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
 
-            Log.d(TAG, "rect: " + rect.toString());
-            Imgproc.rectangle(drawing, rect, new Scalar(255), 5);
-            mImgUtil.saveMat(drawing, "rect");
+            Imgproc.adaptiveThreshold(dst, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 21, 5);
+            mImgUtil.saveMat(dst, "自适应阈值");
+
+            Mat ele = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
+            Imgproc.morphologyEx(dst, dst, Imgproc.MORPH_CLOSE, ele);
+            mImgUtil.saveMat(dst, "b");
         }
     }
 
-    public Bitmap perspective(Mat src, List<Point> orgCorners) {
-        List<Point> corners = new ArrayList<>();
-        Point center = getCenterPoint(orgCorners);
-
-        Point leftTop = null, rightTop = null, rightBottom = null, leftBottom = null;
-        for (int i = 0; i < orgCorners.size(); i++) {
-            if (orgCorners.get(i).x < center.x && orgCorners.get(i).y < center.y) {
-                leftTop = new Point(orgCorners.get(i).x, orgCorners.get(i).y);
-            } else if (orgCorners.get(i).x > center.x && orgCorners.get(i).y < center.y) {
-                rightTop = new Point(orgCorners.get(i).x, orgCorners.get(i).y);
-            } else if (orgCorners.get(i).x > center.x && orgCorners.get(i).y > center.y) {
-                rightBottom = new Point(orgCorners.get(i).x, orgCorners.get(i).y);
-            } else if (orgCorners.get(i).x < center.x && orgCorners.get(i).y > center.y) {
-                leftBottom = new Point(orgCorners.get(i).x, orgCorners.get(i).y);
-            } else {
-                Log.e(TAG, "err");
-            }
-        }
-        corners.add(leftTop);
-        corners.add(rightTop);
-        corners.add(rightBottom);
-        corners.add(leftBottom);
-
-        double top = Math.sqrt(Math.pow(leftTop.x - rightTop.x, 2) + Math.pow(leftTop.y - rightTop.y, 2));
-        double right = Math.sqrt(Math.pow(rightTop.x - rightBottom.x, 2) + Math.pow(rightTop.y - rightBottom.y, 2));
-        double bottom = Math.sqrt(Math.pow(leftBottom.x - rightBottom.x, 2) + Math.pow(leftBottom.y - rightBottom.y, 2));
-        double left = Math.sqrt(Math.pow(leftTop.x - leftBottom.x, 2) + Math.pow(leftTop.y - leftBottom.y, 2));
-        Mat quad = Mat.zeros(new Size(Math.max(top, bottom), Math.max(left, right)),
-                CvType.CV_8UC3);
-        Log.d(TAG, "quad: " + quad.size().toString());
-
-        List<Point> result_pts = new ArrayList<Point>();
-        Point p1 = new Point(0, 0);
-        Point p2 = new Point(quad.cols(), 0);
-        Point p3 = new Point(quad.cols(), quad.rows());
-        Point p4 = new Point(0, quad.rows());
-
-        result_pts.add(p1);
-        result_pts.add(p2);
-        result_pts.add(p3);
-        result_pts.add(p4);
-
-        Mat cornerPts = Converters.vector_Point2f_to_Mat(corners);
-        Mat resultPts = Converters.vector_Point2f_to_Mat(result_pts);
-
-        Mat transformation = Imgproc.getPerspectiveTransform(cornerPts, resultPts);
-        Imgproc.warpPerspective(src, quad, transformation, quad.size());
-
-        mImgUtil.saveMat(quad, "透视变换");
-
-        Imgproc.cvtColor(quad, quad, Imgproc.COLOR_BGR2RGBA);
-        Bitmap bitmap = Bitmap.createBitmap(quad.cols(), quad.rows(),
-                Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(quad, bitmap);
-
-        return bitmap;
-    }
-
-    private Point getCenterPoint(List<Point> corners) {
-        double[] arrX = {0, 0, 0, 0};
-        double[] arrY = {0, 0, 0, 0};
-        for (int i = 0; i < corners.size(); i++) {
-            arrX[i] = corners.get(i).x;
-            arrY[i] = corners.get(i).y;
-        }
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (arrX[j] > arrX[j + 1]) {
-                    double temp = arrX[j];
-                    arrX[j] = arrX[j + 1];
-                    arrX[j + 1] = temp;
-                }
-                if (arrY[j] > arrY[j + 1]) {
-                    double temp = arrY[j];
-                    arrY[j] = arrY[j + 1];
-                    arrY[j + 1] = temp;
-                }
-            }
-        }
-        return new Point((arrX[1] + arrX[2]) / 2, (arrY[1] + arrY[2]) / 2);
-    }
-
-    private void showImg() {
-        ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
-        GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
-        mRvImgs.setLayoutManager(manager);
-        mRvImgs.setAdapter(adapter);
-        progressDialog.dismiss();
-    }
-
-    @OnClick(R.id.btn_crop)
-    public void onViewClicked() {
-        List<Point> cropCorners = mFcv.getCropCorners();
-        Mat dd = mSrc.clone();
-        for (Point p : cropCorners) {
-            Imgproc.circle(dd, p, 5, new Scalar(0, 255, 0), 30);
-        }
-        // List<PointF> points = new ArrayList<>();
-        // for (int i = 0; i < cropCorners.size(); i++) {
-        //     points.add(new PointF((int) cropCorners.get(i).x, (int) cropCorners.get(i).y));
-        // }
-        // mFcv.setOrgCorners(points);
-
-        mImgUtil.saveMat(dd, "cropCorners");
-        Bitmap perspective = perspective2(mSrc, cropCorners);
-        mIvCrop.setImageBitmap(perspective);
-    }
 
     public Bitmap perspective2(Mat src, List<Point> corners) {
         double top = Math.sqrt(Math.pow(corners.get(0).x - corners.get(1).x, 2) + Math.pow(corners.get(0).y - corners.get(1).y, 2));
@@ -319,6 +220,27 @@ public class ScannerActivity extends AppCompatActivity {
         Utils.matToBitmap(quad, bitmap);
 
         return bitmap;
+    }
+
+    private void showImg() {
+        ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
+        GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
+        mRvImgs.setLayoutManager(manager);
+        mRvImgs.setAdapter(adapter);
+        progressDialog.dismiss();
+    }
+
+    @OnClick(R.id.btn_crop)
+    public void onViewClicked() {
+        List<Point> cropCorners = mFcv.getCropCorners();
+        Mat dd = mSrc.clone();
+        for (Point p : cropCorners) {
+            Imgproc.circle(dd, p, 5, new Scalar(0, 255, 0), 30);
+        }
+
+        mImgUtil.saveMat(dd, "cropCorners");
+        Bitmap perspective = perspective2(mSrc, cropCorners);
+        mIvCrop.setImageBitmap(perspective);
     }
 
 }

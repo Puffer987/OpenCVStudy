@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
 import com.adolf.opencvstudy.rv.ItemRVBean;
-import com.adolf.opencvstudy.utils.SaveImgUtil;
+import com.adolf.opencvstudy.utils.ImgUtil;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -35,7 +35,7 @@ public class BlurSharpenActivity extends AppCompatActivity {
 
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
-    private SaveImgUtil mImgUtil;
+    private ImgUtil mImgUtil;
     private Bitmap mOrgBtm;
 
     @Override
@@ -45,7 +45,7 @@ public class BlurSharpenActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         mImgCachePath = new File(getExternalFilesDir(null), "/process");
 
-        mImgUtil = new SaveImgUtil(mImgCachePath, mRVBeanList);
+        mImgUtil = new ImgUtil(mImgCachePath, mRVBeanList);
 
         String path = getIntent().getStringExtra("img");
         mOrgBtm = BitmapFactory.decodeFile(path);

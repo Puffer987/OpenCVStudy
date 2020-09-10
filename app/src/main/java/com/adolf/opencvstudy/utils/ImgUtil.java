@@ -1,6 +1,7 @@
 package com.adolf.opencvstudy.utils;
 
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.widget.Toast;
 
 import com.adolf.opencvstudy.rv.ItemRVBean;
@@ -19,12 +20,12 @@ import java.util.List;
  * @author: Adolf
  * @create: 2020-09-03 17:50
  **/
-public class SaveImgUtil {
+public class ImgUtil {
 
     private File mImgCachePath;
     private List<ItemRVBean> mRVBeanList;
 
-    public SaveImgUtil(File imgCachePath, List<ItemRVBean> RVBeanList) {
+    public ImgUtil(File imgCachePath, List<ItemRVBean> RVBeanList) {
         mImgCachePath = imgCachePath;
         mRVBeanList = RVBeanList;
 
@@ -66,4 +67,16 @@ public class SaveImgUtil {
         return mRVBeanList;
     }
 
+    public Bitmap zoomImage(Bitmap orgBtm, float scale) {
+        // 获取这个图片的宽和高
+        int width = orgBtm.getWidth();
+        int height = orgBtm.getHeight();
+
+        // 创建操作图片用的matrix对象
+        Matrix matrix = new Matrix();
+
+        // 缩放图片动作
+        matrix.postScale(scale, scale);
+        return Bitmap.createBitmap(orgBtm, 0, 0, width, height, matrix, true);
+    }
 }
