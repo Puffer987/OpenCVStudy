@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,6 +29,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
@@ -41,6 +43,7 @@ import butterknife.OnClick;
 
 public class ScannerActivity extends AppCompatActivity {
     private static final String TAG = "[jq]ScannerActivity";
+    private static final String CROP_IMG_NAME = "/crop.jpg";
     @BindView(R.id.rv_imgs)
     RecyclerView mRvImgs;
     @BindView(R.id.fcv)
@@ -61,6 +64,7 @@ public class ScannerActivity extends AppCompatActivity {
     private Bitmap mBigBmp;
     private float mScale;
     private boolean isFreeCrop;
+    private File mImgCachePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,8 +84,8 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     private void initImage() {
-        File imgCachePath = new File(getExternalFilesDir(null), "/process");
-        mImgUtil = new ImgUtil(imgCachePath, mRVBeanList);
+        mImgCachePath = new File(getExternalFilesDir(null), "/process");
+        mImgUtil = new ImgUtil(mImgCachePath, mRVBeanList);
         String path = getIntent().getStringExtra("img");
         mBigBmp = BitmapFactory.decodeFile(path);
         // 将bitmap缩小
@@ -224,22 +228,14 @@ public class ScannerActivity extends AppCompatActivity {
                 });
             }
         } else {
-            RectF initCropRect = new RectF(0, 0, mBigBmp.getWidth(), mBigBmp.getHeight());
+            RectF initCropRect = new RectF(50, 50, mSamllMat.width() - 50, mSamllMat.height() - 50);
             isFreeCrop = false;
 
             runOnUiThread(() -> {
                 mCiv.setInitCropRect(initCropRect);
-                mCiv.setVisibility(View.VISIBLE);
                 mFcv.setVisibility(View.GONE);
+                mCiv.setVisibility(View.VISIBLE);
             });
-
-            Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
-            Imgproc.adaptiveThreshold(dst, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 21, 5);
-            mImgUtil.saveMat(dst, "自适应阈值");
-
-            Mat ele = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
-            Imgproc.morphologyEx(dst, dst, Imgproc.MORPH_CLOSE, ele);
-            mImgUtil.saveMat(dst, "b");
         }
     }
 
@@ -278,7 +274,7 @@ public class ScannerActivity extends AppCompatActivity {
         return bitmap;
     }
 
-    @OnClick({R.id.btn_cancel, R.id.btn_crop, R.id.btn_recrop})
+    @OnClick({R.id.btn_cancel, R.id.btn_crop, R.id.btn_recrop, R.id.btn_strength})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_cancel:
@@ -296,6 +292,28 @@ public class ScannerActivity extends AppCompatActivity {
                 mGroupCrop.setVisibility(View.VISIBLE);
                 mGroupDisplay.setVisibility(View.GONE);
                 break;
+            case R.id.btn_strength:
+                Mat src = Imgcodecs.imread(new File(mImgCachePath, CROP_IMG_NAME).getAbsolutePath(), Imgcodecs.IMREAD_COLOR);
+                Mat dst = new Mat();
+
+
+                Mat kernel = new Mat(3, 3, CvType.CV_16SC1);
+                kernel.put(0, 0, 0, -1, 0, -1, 5, -1, 0, -1, 0);
+                Imgproc.filter2D(src, dst, -1, kernel);
+
+
+
+                // // Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
+                // Imgproc.adaptiveThreshold(src, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 21, 5);
+                // // mImgUtil.saveMat(dst, "自适应阈值");
+                //
+                // Mat ele = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
+                // Imgproc.morphologyEx(dst, dst, Imgproc.MORPH_CLOSE, ele);
+                // mImgUtil.saveMat(dst, "b");
+                Imgcodecs.imwrite(new File(mImgCachePath, CROP_IMG_NAME).getAbsolutePath(), dst);
+
+                mIvDisplay.setImageBitmap(BitmapFactory.decodeFile(new File(mImgCachePath, CROP_IMG_NAME).getAbsolutePath()));
+                break;
         }
     }
 
@@ -305,25 +323,37 @@ public class ScannerActivity extends AppCompatActivity {
         Imgproc.cvtColor(bigMat, bigMat, Imgproc.COLOR_RGB2BGRA);
 
         List<Point> cropCorners = mFcv.getCropCorners();
-        // Mat dd = mSamllMat.clone();
-        // for (Point p : cropCorners) {
-        //     Imgproc.circle(dd, p, 5, new Scalar(0, 255, 0), 30);
-        // }
-        // mImgUtil.saveMat(dd, "cropCorners");
-        List<Point> corners = new ArrayList<>();
-        for (Point p : cropCorners) {
-            corners.add(new Point(p.x / mScale, p.y / mScale));
-        }
-        Bitmap perspective = perspective(bigMat, corners);
-        mIvDisplay.setImageBitmap(perspective);
 
-        mGroupCrop.setVisibility(View.GONE);
-        mGroupDisplay.setVisibility(View.VISIBLE);
+        if (cropCorners.size() == 0) {
+            Toast.makeText(this, "截图区域不允许，请重新设置角度", Toast.LENGTH_SHORT).show();
+        } else {
+            // Mat dd = mSamllMat.clone();
+            // for (Point p : cropCorners) {
+            //     Imgproc.circle(dd, p, 5, new Scalar(0, 255, 0), 30);
+            // }
+            // mImgUtil.saveMat(dd, "cropCorners");
+            List<Point> corners = new ArrayList<>();
+            for (Point p : cropCorners) {
+                corners.add(new Point(p.x / mScale, p.y / mScale));
+            }
+            Bitmap perspective = perspective(bigMat, corners);
+
+            File file = new File(mImgCachePath, CROP_IMG_NAME);
+            mImgUtil.saveBitmap(perspective, file);
+
+            mIvDisplay.setImageBitmap(perspective);
+            mGroupCrop.setVisibility(View.GONE);
+            mGroupDisplay.setVisibility(View.VISIBLE);
+        }
     }
 
     private void rectCrop() {
         int[] cropAttrs = mCiv.getCropAttrs();
         Bitmap cropBmp = Bitmap.createBitmap(mBigBmp, (int) (cropAttrs[0] / mScale), (int) (cropAttrs[1] / mScale), (int) (cropAttrs[2] / mScale), (int) (cropAttrs[3] / mScale));
+
+        File file = new File(mImgCachePath, CROP_IMG_NAME);
+        mImgUtil.saveBitmap(cropBmp, file);
+
         mIvDisplay.setImageBitmap(cropBmp);
         mGroupCrop.setVisibility(View.GONE);
         mGroupDisplay.setVisibility(View.VISIBLE);

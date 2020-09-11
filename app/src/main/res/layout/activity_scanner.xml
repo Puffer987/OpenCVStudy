@@ -61,6 +61,15 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:text="重新\n裁切" />
+
+        <Button
+            android:id="@+id/btn_strength"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/btn_recrop"
+            android:layout_below="@+id/btn_recrop"
+            android:layout_marginTop="50dp"
+            android:text="文本\n增强" />
     </RelativeLayout>
 
 

@@ -57,6 +57,17 @@ public class ImgUtil {
         }
     }
 
+    public void saveBitmap(Bitmap source, File file) {
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            source.compress(Bitmap.CompressFormat.JPEG, 80, out);
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void saveMat(Mat source, String title) {
         File file = new File(mImgCachePath, "/" + System.currentTimeMillis() + ".jpg");
         Imgcodecs.imwrite(file.getAbsolutePath(), source);

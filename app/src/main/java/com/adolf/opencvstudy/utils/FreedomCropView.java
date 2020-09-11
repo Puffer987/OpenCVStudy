@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,6 +46,8 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
     private Corner mCloseTo;
     private float mTouchX;
     private float mTouchY;
+    private Paint mErrLinePaint;
+    private Paint mErrCornerPaint;
 
 
     public FreedomCropView(@NonNull Context context) {
@@ -68,12 +71,22 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         mLinePaint = new Paint();
         mLinePaint.setStyle(Paint.Style.STROKE);
         mLinePaint.setStrokeWidth(5);
-        mLinePaint.setColor(Color.parseColor("#AAFFCCCC"));
+        mLinePaint.setColor(Color.parseColor("#AA99cc00"));
 
         mCornerPaint = new Paint();
         mCornerPaint.setStyle(Paint.Style.FILL);
         mCornerPaint.setStrokeWidth(20);
-        mCornerPaint.setColor(Color.parseColor("#AAFF6666"));
+        mCornerPaint.setColor(Color.parseColor("#AA99ff00"));
+
+        mErrLinePaint = new Paint();
+        mErrLinePaint.setStyle(Paint.Style.STROKE);
+        mErrLinePaint.setStrokeWidth(5);
+        mErrLinePaint.setColor(Color.parseColor("#AAff6600"));
+
+        mErrCornerPaint = new Paint();
+        mErrCornerPaint.setStyle(Paint.Style.FILL);
+        mErrCornerPaint.setStrokeWidth(20);
+        mErrCornerPaint.setColor(Color.parseColor("#AAff0033"));
     }
 
     /**
@@ -110,15 +123,29 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        canvas.drawLine(lb.x, lb.y, lt.x, lt.y, mLinePaint);
-        canvas.drawLine(lt.x, lt.y, rt.x, rt.y, mLinePaint);
-        canvas.drawLine(rt.x, rt.y, rb.x, rb.y, mLinePaint);
-        canvas.drawLine(rb.x, rb.y, lb.x, lb.y, mLinePaint);
+        if (isAllAngleValid()) {
+            Log.d(TAG, "onDraw: 角度允许");
+            canvas.drawLine(lb.x, lb.y, lt.x, lt.y, mLinePaint);
+            canvas.drawLine(lt.x, lt.y, rt.x, rt.y, mLinePaint);
+            canvas.drawLine(rt.x, rt.y, rb.x, rb.y, mLinePaint);
+            canvas.drawLine(rb.x, rb.y, lb.x, lb.y, mLinePaint);
 
-        canvas.drawCircle(lt.x, lt.y, 10, mCornerPaint);
-        canvas.drawCircle(lb.x, lb.y, 10, mCornerPaint);
-        canvas.drawCircle(rt.x, rt.y, 10, mCornerPaint);
-        canvas.drawCircle(rb.x, rb.y, 10, mCornerPaint);
+            canvas.drawCircle(lt.x, lt.y, 10, mCornerPaint);
+            canvas.drawCircle(lb.x, lb.y, 10, mCornerPaint);
+            canvas.drawCircle(rt.x, rt.y, 10, mCornerPaint);
+            canvas.drawCircle(rb.x, rb.y, 10, mCornerPaint);
+        } else {
+            Log.d(TAG, "onDraw: 非法角度");
+            canvas.drawLine(lb.x, lb.y, lt.x, lt.y, mErrLinePaint);
+            canvas.drawLine(lt.x, lt.y, rt.x, rt.y, mErrLinePaint);
+            canvas.drawLine(rt.x, rt.y, rb.x, rb.y, mErrLinePaint);
+            canvas.drawLine(rb.x, rb.y, lb.x, lb.y, mErrLinePaint);
+
+            canvas.drawCircle(lt.x, lt.y, 10, mErrCornerPaint);
+            canvas.drawCircle(lb.x, lb.y, 10, mErrCornerPaint);
+            canvas.drawCircle(rt.x, rt.y, 10, mErrCornerPaint);
+            canvas.drawCircle(rb.x, rb.y, 10, mErrCornerPaint);
+        }
     }
 
     @Override
@@ -196,6 +223,15 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         }
     }
 
+    /**
+     * 移动操作
+     *
+     * @param org   原始坐标
+     * @param move  移动的偏移
+     * @param lower 移动后的下限
+     * @param upper 移动后的上限
+     * @return 返回移动后的值
+     */
     private float move(float org, float move, float lower, float upper) {
         if (org + move > lower && org + move < upper) {
             org += move;
@@ -206,6 +242,22 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
         }
         return org;
     }
+
+
+    private boolean isAllAngleValid() {
+        return cosAngle(lt, lb, rt) && cosAngle(rt, lt, rb) && cosAngle(rb, rt, lb) && cosAngle(lb, rb, lt);
+    }
+
+    private boolean cosAngle(PointF pointA, PointF pointB, PointF pointC) {
+        double lengthAB = Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2)),
+                lengthAC = Math.sqrt(Math.pow(pointA.x - pointC.x, 2) + Math.pow(pointA.y - pointC.y, 2)),
+                lengthBC = Math.sqrt(Math.pow(pointB.x - pointC.x, 2) + Math.pow(pointB.y - pointC.y, 2));
+        double cosA = (Math.pow(lengthAB, 2) + Math.pow(lengthAC, 2) - Math.pow(lengthBC, 2)) / (2 * lengthAB * lengthAC);
+        // float angleA = Math.round( Math.acos(cosA) * 180 / Math.PI );
+        Log.d(TAG, "cosAngle: " + Math.round(Math.acos(cosA) * 180 / Math.PI));
+        return cosA > -Math.sqrt(2) / 2 && cosA < Math.sqrt(2) / 2;
+    }
+
 
     public enum Corner {
         OUTSIDE,
@@ -263,15 +315,18 @@ public class FreedomCropView extends androidx.appcompat.widget.AppCompatImageVie
     }
 
     /**
-     * 提供外界截图框
+     * 提供外界截图框对应的点坐标
      */
     public List<org.opencv.core.Point> getCropCorners() {
         List<org.opencv.core.Point> cropCorners = new ArrayList<>();
-        cropCorners.add(new org.opencv.core.Point((lt.x - mTransX) / mScaleX, (lt.y - mTransY) / mScaleY));
-        cropCorners.add(new org.opencv.core.Point((rt.x - mTransX) / mScaleX, (rt.y - mTransY) / mScaleY));
-        cropCorners.add(new org.opencv.core.Point((rb.x - mTransX) / mScaleX, (rb.y - mTransY) / mScaleY));
-        cropCorners.add(new org.opencv.core.Point((lb.x - mTransX) / mScaleX, (lb.y - mTransY) / mScaleY));
+        if (isAllAngleValid()) {
+            cropCorners.add(new org.opencv.core.Point((lt.x - mTransX) / mScaleX, (lt.y - mTransY) / mScaleY));
+            cropCorners.add(new org.opencv.core.Point((rt.x - mTransX) / mScaleX, (rt.y - mTransY) / mScaleY));
+            cropCorners.add(new org.opencv.core.Point((rb.x - mTransX) / mScaleX, (rb.y - mTransY) / mScaleY));
+            cropCorners.add(new org.opencv.core.Point((lb.x - mTransX) / mScaleX, (lb.y - mTransY) / mScaleY));
+        } else {
 
+        }
         return cropCorners;
     }
 
