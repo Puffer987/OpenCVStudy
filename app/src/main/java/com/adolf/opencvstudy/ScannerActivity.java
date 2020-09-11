@@ -21,6 +21,7 @@ import com.adolf.opencvstudy.utils.FreedomCropView;
 import com.adolf.opencvstudy.utils.ImgUtil;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -200,19 +201,6 @@ public class ScannerActivity extends AppCompatActivity {
                 Imgproc.rectangle(drawing, rect, new Scalar(255), 1);
                 mImgUtil.saveMat(drawing, "rect");
 
-                // 传给freedomCrop
-                // Point tl = rect.tl();
-                // Point br = rect.br();
-                // PointF lt = new PointF((float) tl.x, (float) tl.y);
-                // PointF rb = new PointF((float) br.x, (float) br.y);
-                // PointF rt = new PointF((float) tl.x, (float) br.y);
-                // PointF lb = new PointF((float) br.x, (float) tl.y);
-                // List<PointF> points = new ArrayList<>();
-                // points.add(lt);
-                // points.add(rt);
-                // points.add(rb);
-                // points.add(lb);
-
                 // android.graphics.RectF构造方法是从左，上，右，下各自的坐标
                 // org.opencv.core.Rect构造方法是左上坐标，宽，高
                 RectF initCropRect = new RectF(rect.x, rect.y, rect.width + rect.x, rect.height + rect.y);
@@ -228,15 +216,58 @@ public class ScannerActivity extends AppCompatActivity {
                 });
             }
         } else {
-            RectF initCropRect = new RectF(50, 50, mSamllMat.width() - 50, mSamllMat.height() - 50);
+            Rect rect = autoCrop(mSamllMat);
+            RectF initCropRect;
             isFreeCrop = false;
-
+            if (rect.width < mSamllMat.width() * 0.15 || rect.height < mSamllMat.height() * 0.15) {
+                 initCropRect = new RectF(50, 50, mSamllMat.width() - 50, mSamllMat.height() - 50);
+                isFreeCrop = false;
+            }else {
+                initCropRect = new RectF(rect.x, rect.y, rect.width + rect.x, rect.height + rect.y);
+                Log.d(TAG, "包含角点的rect: " + rect);
+                Log.d(TAG, "传给crop的Rect: " + initCropRect);
+            }
             runOnUiThread(() -> {
                 mCiv.setInitCropRect(initCropRect);
                 mFcv.setVisibility(View.GONE);
                 mCiv.setVisibility(View.VISIBLE);
             });
         }
+    }
+
+    private Rect autoCrop(Mat src) {
+        Mat dst = new Mat();
+        Mat gray = new Mat();
+        Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
+
+
+        Mat binary1 = new Mat();
+        Mat binary2 = new Mat();
+        Imgproc.adaptiveThreshold(gray, binary1, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 9, 20);
+        mImgUtil.saveMat(binary1, "自动阈值");
+
+        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new Size(3, 3));
+        for (int i = 0; i < 3; i++) {
+            Imgproc.morphologyEx(binary1, binary1, Imgproc.MORPH_OPEN, element);
+            mImgUtil.saveMat(binary1, "binary1开" + i);
+        }
+
+        Imgproc.threshold(gray, binary2, 127, 255, Imgproc.THRESH_BINARY_INV);
+        mImgUtil.saveMat(binary2, "127阈值");
+
+        Core.bitwise_and(binary1, binary2, dst);
+        mImgUtil.saveMat(dst, "与运算");
+
+
+        Imgproc.Canny(dst, dst, 100, 200);
+        mImgUtil.saveMat(dst, "Canny");
+
+        Rect rect = Imgproc.boundingRect(dst);
+        Mat drawing = Mat.zeros(src.size(), CvType.CV_8UC1);
+        Imgproc.rectangle(drawing, rect, new Scalar(255), 2);
+        mImgUtil.saveMat(drawing, "rect");
+
+        return rect;
     }
 
     public Bitmap perspective(Mat src, List<Point> corners) {
@@ -300,7 +331,6 @@ public class ScannerActivity extends AppCompatActivity {
                 Mat kernel = new Mat(3, 3, CvType.CV_16SC1);
                 kernel.put(0, 0, 0, -1, 0, -1, 5, -1, 0, -1, 0);
                 Imgproc.filter2D(src, dst, -1, kernel);
-
 
 
                 // // Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);

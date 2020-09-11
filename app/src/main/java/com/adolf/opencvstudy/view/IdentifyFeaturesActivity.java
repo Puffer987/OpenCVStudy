@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -20,9 +21,11 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.TermCriteria;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
@@ -35,7 +38,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class IdentifyFeaturesActivity extends AppCompatActivity {
-    private static final String TAG = "[jq]IdentifyFeaturesActivity";
+    private static final String TAG = "[jq]FeaturesActivity";
     @BindView(R.id.rv_imgs)
     RecyclerView mRvImgs;
     @BindView(R.id.btn_do)
@@ -45,6 +48,10 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
     private File mImgCachePath;
     private ImgUtil mImgUtil;
     private Bitmap mOrgBtm;
+    private ProgressDialog progressDialog;
+    private float mScale;
+    private Mat mSamllMat;
+    private Bitmap mSmallBtm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,23 +64,71 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
 
         String path = getIntent().getStringExtra("img");
         mOrgBtm = BitmapFactory.decodeFile(path);
+
+        mScale = 963f / mOrgBtm.getWidth();
+        mSmallBtm = mImgUtil.zoomImage(mOrgBtm, mScale);
+        mSamllMat = new Mat();
+        Utils.bitmapToMat(mSmallBtm, mSamllMat);
+        Imgproc.cvtColor(mSamllMat, mSamllMat, Imgproc.COLOR_RGB2BGRA);
+
+        initProgressDialog();
+        progressDialog.show();
+        new Thread(() -> {
+            autoCrop(mSamllMat);
+            // devGaussian(mSmallBtm);
+            // canny(mSmallBtm);
+            // sobel(mSmallBtm);
+            // harris(mSmallBtm);
+            // houghLines(mSmallBtm);
+            runOnUiThread(() -> showImg());
+        }).start();
+
+    }
+
+    private void initProgressDialog() {
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setIndeterminate(false);//循环滚动
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("loading...");
+        progressDialog.setCancelable(false);//false不能取消显示，true可以取消显示
     }
 
     @OnClick(R.id.btn_do)
     public void onViewClicked() {
-        mBtnDo.setEnabled(false);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                devGaussian(mOrgBtm);
-                // canny(mOrgBtm);
-                sobel(mOrgBtm);
-                harris(mOrgBtm);
-                // houghLines(mOrgBtm);
-                runOnUiThread(() -> showImg());
-            }
-        }).start();
 
+    }
+
+    private void autoCrop(Mat src) {
+        Mat dst = new Mat();
+        Mat gray = new Mat();
+        Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
+
+
+        Mat binary1 = new Mat();
+        Mat binary2 = new Mat();
+        Imgproc.adaptiveThreshold(gray, binary1, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 9, 20);
+        mImgUtil.saveMat(binary1, "自动阈值");
+
+        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new Size(3, 3));
+        for (int i = 0; i < 3; i++) {
+            Imgproc.morphologyEx(binary1, binary1, Imgproc.MORPH_OPEN, element);
+            mImgUtil.saveMat(binary1, "binary1开" + i);
+        }
+
+        Imgproc.threshold(gray, binary2, 127, 255, Imgproc.THRESH_BINARY_INV);
+        mImgUtil.saveMat(binary2, "127阈值");
+
+        Core.bitwise_and(binary1, binary2, dst);
+        mImgUtil.saveMat(dst, "与运算");
+
+
+        Imgproc.Canny(dst,dst,100,200);
+        mImgUtil.saveMat(dst, "Canny");
+
+        Rect rect = Imgproc.boundingRect(dst);
+        Mat drawing = Mat.zeros(src.size(),CvType.CV_8UC1);
+        Imgproc.rectangle(drawing, rect, new Scalar(255), 2);
+        mImgUtil.saveMat(drawing, "rect");
     }
 
     private void houghLines(Bitmap source) {
@@ -167,6 +222,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         Core.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 1, out);
         mImgUtil.saveMat(out, "sobel");
     }
+
     private void findLines(Mat src) {
         Mat dst = new Mat();
         Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
@@ -238,6 +294,7 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
         mImgUtil.saveMat(lines, "line");
 
     }
+
     static double calcWhiteDist(double r, double g, double b) {
         return Math.sqrt(Math.pow(255 - r, 2) +
                 Math.pow(255 - g, 2) + Math.pow(255 - b, 2));
@@ -294,12 +351,12 @@ public class IdentifyFeaturesActivity extends AppCompatActivity {
     }
 
     private void showImg() {
-
         ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
         GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         mRvImgs.setLayoutManager(manager);
         mRvImgs.setAdapter(adapter);
         mBtnDo.setEnabled(true);
+        progressDialog.dismiss();
     }
 
 }

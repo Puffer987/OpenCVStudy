@@ -45,7 +45,7 @@ public class ImgUtil {
     }
 
     public void saveBitmap(Bitmap source, String title) {
-        File file = new File(mImgCachePath, "/" + System.currentTimeMillis() + ".jpg");
+        File file = new File(mImgCachePath, "/" +title+ System.currentTimeMillis() + ".jpg");
         mRVBeanList.add(new ItemRVBean(file.getAbsolutePath(), title));
         try {
             FileOutputStream out = new FileOutputStream(file);
@@ -69,7 +69,7 @@ public class ImgUtil {
     }
 
     public void saveMat(Mat source, String title) {
-        File file = new File(mImgCachePath, "/" + System.currentTimeMillis() + ".jpg");
+        File file = new File(mImgCachePath, "/" +title+ System.currentTimeMillis() + ".jpg");
         Imgcodecs.imwrite(file.getAbsolutePath(), source);
         mRVBeanList.add(new ItemRVBean(file.getAbsolutePath(), title));
     }
