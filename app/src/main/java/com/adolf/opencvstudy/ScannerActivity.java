@@ -111,7 +111,11 @@ public class ScannerActivity extends AppCompatActivity {
         // GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         // mRvImgs.setLayoutManager(manager);
         // mRvImgs.setAdapter(adapter);
-        freedomCrop();
+        if (isFreeCrop) {
+            freedomCrop();
+        } else {
+            rectCrop();
+        }
         progressDialog.dismiss();
     }
 
@@ -178,7 +182,7 @@ public class ScannerActivity extends AppCompatActivity {
                 for (int i = 0; i < corners.size(); i++) {
                     points.add(new PointF((int) corners.get(i).x, (int) corners.get(i).y));
                 }
-                runOnUiThread(()->{
+                runOnUiThread(() -> {
                     mFcv.setOrgCorners(points);
                     mCiv.setVisibility(View.GONE);
                     mFcv.setVisibility(View.VISIBLE);
@@ -222,9 +226,12 @@ public class ScannerActivity extends AppCompatActivity {
         } else {
             RectF initCropRect = new RectF(0, 0, mBigBmp.getWidth(), mBigBmp.getHeight());
             isFreeCrop = false;
-            mCiv.setInitCropRect(initCropRect);
-            mCiv.setVisibility(View.VISIBLE);
-            runOnUiThread(() -> mFcv.setVisibility(View.GONE));
+
+            runOnUiThread(() -> {
+                mCiv.setInitCropRect(initCropRect);
+                mCiv.setVisibility(View.VISIBLE);
+                mFcv.setVisibility(View.GONE);
+            });
 
             Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
             Imgproc.adaptiveThreshold(dst, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 21, 5);
@@ -235,7 +242,6 @@ public class ScannerActivity extends AppCompatActivity {
             mImgUtil.saveMat(dst, "b");
         }
     }
-
 
     public Bitmap perspective(Mat src, List<Point> corners) {
         double top = Math.sqrt(Math.pow(corners.get(0).x - corners.get(1).x, 2) + Math.pow(corners.get(0).y - corners.get(1).y, 2));
@@ -272,7 +278,6 @@ public class ScannerActivity extends AppCompatActivity {
         return bitmap;
     }
 
-
     @OnClick({R.id.btn_cancel, R.id.btn_crop, R.id.btn_recrop})
     public void onViewClicked(View view) {
         switch (view.getId()) {
@@ -284,11 +289,7 @@ public class ScannerActivity extends AppCompatActivity {
                 if (isFreeCrop) {
                     freedomCrop();
                 } else {
-                    int[] cropAttrs = mCiv.getCropAttrs();
-                    Bitmap cropBmp = Bitmap.createBitmap(mBigBmp, (int) (cropAttrs[0] / mScale), (int) (cropAttrs[1] / mScale), (int) (cropAttrs[2] / mScale), (int) (cropAttrs[3] / mScale));
-                    mIvDisplay.setImageBitmap(cropBmp);
-                    mGroupCrop.setVisibility(View.GONE);
-                    mGroupDisplay.setVisibility(View.VISIBLE);
+                    rectCrop();
                 }
                 break;
             case R.id.btn_recrop:
@@ -319,4 +320,13 @@ public class ScannerActivity extends AppCompatActivity {
         mGroupCrop.setVisibility(View.GONE);
         mGroupDisplay.setVisibility(View.VISIBLE);
     }
+
+    private void rectCrop() {
+        int[] cropAttrs = mCiv.getCropAttrs();
+        Bitmap cropBmp = Bitmap.createBitmap(mBigBmp, (int) (cropAttrs[0] / mScale), (int) (cropAttrs[1] / mScale), (int) (cropAttrs[2] / mScale), (int) (cropAttrs[3] / mScale));
+        mIvDisplay.setImageBitmap(cropBmp);
+        mGroupCrop.setVisibility(View.GONE);
+        mGroupDisplay.setVisibility(View.VISIBLE);
+    }
+
 }
