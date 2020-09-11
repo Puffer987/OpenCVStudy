@@ -38,8 +38,24 @@ public class CropImgView extends androidx.appcompat.widget.AppCompatImageView {
     private float mTransX;
     private float mTransY;
 
-    public void setInitCropRect(RectF initCropRect) {
-        this.initCropRect = initCropRect;
+    public void setInitCropRect(RectF inRect) {
+        this.initCropRect = inRect;
+        Log.d(TAG, "原始裁切边框Rect: " + initCropRect);
+        float l = Math.max(initCropRect.left * mScaleX + mTransX - 20, mBorderRect.left);
+        float t = Math.max(initCropRect.top * mScaleX + mTransY - 20, mBorderRect.top);
+        float r = Math.min(initCropRect.right * mScaleX + mTransX + 20, mBorderRect.right);
+        float b = Math.min(initCropRect.bottom * mScaleY + mTransY + 20, mBorderRect.bottom);
+        mEdgeRect = new RectF(l, t, r, b);
+        // Log.d(TAG, "转换裁切边框Rect: " + mEdgeRect);
+        // mEdgeRect = new RectF(mBorderRect.left + 100, mBorderRect.top + 100, mBorderRect.right - 100, mBorderRect.bottom - 100);
+
+        Log.d(TAG, "变换后的裁切边框: " + mEdgeRect);
+        mEdgeLeftX = mEdgeRect.left;
+        mEdgeTopY = mEdgeRect.top;
+        mEdgeRightX = mEdgeRect.right;
+        mEdgeBottomY = mEdgeRect.bottom;
+
+        postInvalidate();
     }
 
     public CropImgView(Context context) {
@@ -58,6 +74,8 @@ public class CropImgView extends androidx.appcompat.widget.AppCompatImageView {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
+        initCropRect = new RectF(0, 0, 0, 0);
+        mEdgeRect = new RectF(initCropRect);
         // 四边边框画笔
         mEdgePaint = new Paint();
         mEdgePaint.setStyle(Paint.Style.STROKE);
@@ -78,21 +96,6 @@ public class CropImgView extends androidx.appcompat.widget.AppCompatImageView {
 
         mBorderRect = getBitmapRect();
         Log.d(TAG, "图片展示区域: " + mBorderRect);
-
-        // Log.d(TAG, "原始裁切边框Rect: " + initCropRect);
-        float l = Math.max(initCropRect.left * mScaleX + mTransX - 20, mBorderRect.left);
-        float t = Math.max(initCropRect.top * mScaleX + mTransY - 20, mBorderRect.top);
-        float r = Math.min(initCropRect.right * mScaleX + mTransX + 20, mBorderRect.right);
-        float b = Math.min(initCropRect.bottom * mScaleY + mTransY + 20, mBorderRect.bottom);
-        mEdgeRect = new RectF(l, t, r, b);
-        // Log.d(TAG, "转换裁切边框Rect: " + mEdgeRect);
-        // mEdgeRect = new RectF(mBorderRect.left + 100, mBorderRect.top + 100, mBorderRect.right - 100, mBorderRect.bottom - 100);
-
-        Log.d(TAG, "变换后的裁切边框: " + mEdgeRect);
-        mEdgeLeftX = mEdgeRect.left;
-        mEdgeTopY = mEdgeRect.top;
-        mEdgeRightX = mEdgeRect.right;
-        mEdgeBottomY = mEdgeRect.bottom;
     }
 
     /**

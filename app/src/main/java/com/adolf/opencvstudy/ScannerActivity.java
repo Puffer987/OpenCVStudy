@@ -155,7 +155,7 @@ public class ScannerActivity extends AppCompatActivity {
          */
         MatOfPoint2f cure = new MatOfPoint2f(contours.get(index).toArray());
         MatOfPoint2f approxCure = new MatOfPoint2f();
-        Imgproc.approxPolyDP(cure, approxCure, contours.size() * 0.15, true);
+        Imgproc.approxPolyDP(cure, approxCure, contours.size() * 0.05, true);
 
 
         Log.d(TAG, "角点个数: " + approxCure.rows());
@@ -178,12 +178,20 @@ public class ScannerActivity extends AppCompatActivity {
                 for (int i = 0; i < corners.size(); i++) {
                     points.add(new PointF((int) corners.get(i).x, (int) corners.get(i).y));
                 }
-                mFcv.setOrgCorners(points);
-                mCiv.setVisibility(View.GONE);
-                mFcv.setVisibility(View.VISIBLE);
+                runOnUiThread(()->{
+                    mFcv.setOrgCorners(points);
+                    mCiv.setVisibility(View.GONE);
+                    mFcv.setVisibility(View.VISIBLE);
+                });
+
                 isFreeCrop = true;
             } else if (corners.size() > 1) {
                 Rect rect = Imgproc.boundingRect(approxCure);
+
+                Log.d(TAG, "rect: " + rect.toString());
+                Imgproc.rectangle(drawing, rect, new Scalar(255), 1);
+                mImgUtil.saveMat(drawing, "rect");
+
                 // 传给freedomCrop
                 // Point tl = rect.tl();
                 // Point br = rect.br();
@@ -204,13 +212,12 @@ public class ScannerActivity extends AppCompatActivity {
                 Log.d(TAG, "传给crop的Rect: " + initCropRect);
 
                 isFreeCrop = false;
-                mCiv.setInitCropRect(initCropRect);
-                mCiv.setVisibility(View.VISIBLE);
-                runOnUiThread(() -> mFcv.setVisibility(View.GONE));
 
-                Log.d(TAG, "rect: " + rect.toString());
-                Imgproc.rectangle(drawing, rect, new Scalar(255), 1);
-                mImgUtil.saveMat(drawing, "rect");
+                runOnUiThread(() -> {
+                    mCiv.setInitCropRect(initCropRect);
+                    mFcv.setVisibility(View.GONE);
+                    mCiv.setVisibility(View.VISIBLE);
+                });
             }
         } else {
             RectF initCropRect = new RectF(0, 0, mBigBmp.getWidth(), mBigBmp.getHeight());
