@@ -4,21 +4,22 @@ import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.adolf.opencvstudy.rv.ImgRVAdapter;
 import com.adolf.opencvstudy.rv.ItemRVBean;
+import com.adolf.opencvstudy.utils.CropImgView;
 import com.adolf.opencvstudy.utils.FreedomCropView;
 import com.adolf.opencvstudy.utils.ImgUtil;
 
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -27,7 +28,6 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
@@ -45,13 +45,22 @@ public class ScannerActivity extends AppCompatActivity {
     RecyclerView mRvImgs;
     @BindView(R.id.fcv)
     FreedomCropView mFcv;
-    @BindView(R.id.iv_crop)
-    ImageView mIvCrop;
+    @BindView(R.id.iv_display)
+    ImageView mIvDisplay;
+    @BindView(R.id.group_crop)
+    RelativeLayout mGroupCrop;
+    @BindView(R.id.group_display)
+    RelativeLayout mGroupDisplay;
+    @BindView(R.id.civ)
+    CropImgView mCiv;
 
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private ImgUtil mImgUtil;
-    private Mat mSrc;
+    private Mat mSamllMat;
     private ProgressDialog progressDialog;
+    private Bitmap mBigBmp;
+    private float mScale;
+    private boolean isFreeCrop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,28 +68,32 @@ public class ScannerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scanner);
         ButterKnife.bind(this);
 
-        File imgCachePath = new File(getExternalFilesDir(null), "/process");
-        mImgUtil = new ImgUtil(imgCachePath, mRVBeanList);
-
-        String path = getIntent().getStringExtra("img");
-        Bitmap orgBtm = BitmapFactory.decodeFile(path);
-
-        float scale = 800f / orgBtm.getWidth();
-        Bitmap smallBtm = mImgUtil.zoomImage(orgBtm, scale);
-        mFcv.setImageBitmap(smallBtm);
-        mIvCrop.setImageBitmap(smallBtm);
-
-        mSrc = new Mat();
-        Utils.bitmapToMat(smallBtm, mSrc);
-        Imgproc.cvtColor(mSrc, mSrc, Imgproc.COLOR_RGB2BGRA);
+        initImage();
 
         initProgressDialog();
 
         progressDialog.show();
         new Thread(() -> {
-            scanning(mSrc);
+            scanning(mSamllMat);
             runOnUiThread(() -> showImg());
         }).start();
+    }
+
+    private void initImage() {
+        File imgCachePath = new File(getExternalFilesDir(null), "/process");
+        mImgUtil = new ImgUtil(imgCachePath, mRVBeanList);
+        String path = getIntent().getStringExtra("img");
+        mBigBmp = BitmapFactory.decodeFile(path);
+        // 将bitmap缩小
+        mScale = 963f / mBigBmp.getWidth();
+        Bitmap smallBtm = mImgUtil.zoomImage(mBigBmp, mScale);
+        mFcv.setImageBitmap(smallBtm);
+        mCiv.setImageBitmap(smallBtm);
+        mIvDisplay.setImageBitmap(smallBtm);
+        // 将缩小后的bitmap转为Mat，用于后续OpenCV操作，减少时间
+        mSamllMat = new Mat();
+        Utils.bitmapToMat(smallBtm, mSamllMat);
+        Imgproc.cvtColor(mSamllMat, mSamllMat, Imgproc.COLOR_RGB2BGRA);
     }
 
     private void initProgressDialog() {
@@ -91,6 +104,17 @@ public class ScannerActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);//false不能取消显示，true可以取消显示
     }
 
+    private void showImg() {
+        // mGroupDisplay.setVisibility(View.VISIBLE);
+        // mGroupCrop.setVisibility(View.GONE);
+        // ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
+        // GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
+        // mRvImgs.setLayoutManager(manager);
+        // mRvImgs.setAdapter(adapter);
+        freedomCrop();
+        progressDialog.dismiss();
+    }
+
     private void scanning(Mat src) {
         Mat dst = new Mat();
         // mImgUtil.saveMat(src, "原图");
@@ -98,7 +122,7 @@ public class ScannerActivity extends AppCompatActivity {
         Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
         // mImgUtil.saveMat(dst, "gray");
 
-        Imgproc.GaussianBlur(dst, dst, new org.opencv.core.Size(7, 7), 5);
+        Imgproc.GaussianBlur(dst, dst, new Size(7, 7), 5);
         mImgUtil.saveMat(dst, "GaussianBlur");
 
         Imgproc.adaptiveThreshold(dst, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 81, 5);
@@ -148,35 +172,54 @@ public class ScannerActivity extends AppCompatActivity {
         Rect borderRect = Imgproc.boundingRect(approxCure);
 
 
-        if (borderRect.height > mSrc.height() * 0.3 && borderRect.width > mSrc.width() * 0.3) {
+        if (borderRect.height > mSamllMat.height() * 0.3 && borderRect.width > mSamllMat.width() * 0.3) {
             if (corners.size() == 4) {
                 List<PointF> points = new ArrayList<>();
                 for (int i = 0; i < corners.size(); i++) {
                     points.add(new PointF((int) corners.get(i).x, (int) corners.get(i).y));
                 }
                 mFcv.setOrgCorners(points);
+                mCiv.setVisibility(View.GONE);
+                mFcv.setVisibility(View.VISIBLE);
+                isFreeCrop = true;
             } else if (corners.size() > 1) {
                 Rect rect = Imgproc.boundingRect(approxCure);
-                Point tl = rect.tl();
-                Point br = rect.br();
-                PointF lt = new PointF((float) tl.x, (float) tl.y);
-                PointF rb = new PointF((float) br.x, (float) br.y);
-                PointF rt = new PointF((float) tl.x, (float) br.y);
-                PointF lb = new PointF((float) br.x, (float) tl.y);
-                List<PointF> points = new ArrayList<>();
-                points.add(lt);
-                points.add(rt);
-                points.add(rb);
-                points.add(lb);
-                mFcv.setOrgCorners(points);
+                // 传给freedomCrop
+                // Point tl = rect.tl();
+                // Point br = rect.br();
+                // PointF lt = new PointF((float) tl.x, (float) tl.y);
+                // PointF rb = new PointF((float) br.x, (float) br.y);
+                // PointF rt = new PointF((float) tl.x, (float) br.y);
+                // PointF lb = new PointF((float) br.x, (float) tl.y);
+                // List<PointF> points = new ArrayList<>();
+                // points.add(lt);
+                // points.add(rt);
+                // points.add(rb);
+                // points.add(lb);
+
+                // android.graphics.RectF构造方法是从左，上，右，下各自的坐标
+                // org.opencv.core.Rect构造方法是左上坐标，宽，高
+                RectF initCropRect = new RectF(rect.x, rect.y, rect.width + rect.x, rect.height + rect.y);
+                Log.d(TAG, "包含角点的rect: " + rect);
+                Log.d(TAG, "传给crop的Rect: " + initCropRect);
+
+                isFreeCrop = false;
+                mCiv.setInitCropRect(initCropRect);
+                mCiv.setVisibility(View.VISIBLE);
+                runOnUiThread(() -> mFcv.setVisibility(View.GONE));
 
                 Log.d(TAG, "rect: " + rect.toString());
-                Imgproc.rectangle(drawing, rect, new Scalar(255), 5);
+                Imgproc.rectangle(drawing, rect, new Scalar(255), 1);
                 mImgUtil.saveMat(drawing, "rect");
             }
         } else {
-            Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
+            RectF initCropRect = new RectF(0, 0, mBigBmp.getWidth(), mBigBmp.getHeight());
+            isFreeCrop = false;
+            mCiv.setInitCropRect(initCropRect);
+            mCiv.setVisibility(View.VISIBLE);
+            runOnUiThread(() -> mFcv.setVisibility(View.GONE));
 
+            Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
             Imgproc.adaptiveThreshold(dst, dst, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 21, 5);
             mImgUtil.saveMat(dst, "自适应阈值");
 
@@ -187,7 +230,7 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
 
-    public Bitmap perspective2(Mat src, List<Point> corners) {
+    public Bitmap perspective(Mat src, List<Point> corners) {
         double top = Math.sqrt(Math.pow(corners.get(0).x - corners.get(1).x, 2) + Math.pow(corners.get(0).y - corners.get(1).y, 2));
         double right = Math.sqrt(Math.pow(corners.get(1).x - corners.get(2).x, 2) + Math.pow(corners.get(1).y - corners.get(2).y, 2));
         double bottom = Math.sqrt(Math.pow(corners.get(3).x - corners.get(2).x, 2) + Math.pow(corners.get(3).y - corners.get(2).y, 2));
@@ -222,25 +265,51 @@ public class ScannerActivity extends AppCompatActivity {
         return bitmap;
     }
 
-    private void showImg() {
-        ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
-        GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
-        mRvImgs.setLayoutManager(manager);
-        mRvImgs.setAdapter(adapter);
-        progressDialog.dismiss();
-    }
 
-    @OnClick(R.id.btn_crop)
-    public void onViewClicked() {
-        List<Point> cropCorners = mFcv.getCropCorners();
-        Mat dd = mSrc.clone();
-        for (Point p : cropCorners) {
-            Imgproc.circle(dd, p, 5, new Scalar(0, 255, 0), 30);
+    @OnClick({R.id.btn_cancel, R.id.btn_crop, R.id.btn_recrop})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.btn_cancel:
+                mGroupCrop.setVisibility(View.GONE);
+                mGroupDisplay.setVisibility(View.VISIBLE);
+                break;
+            case R.id.btn_crop:
+                if (isFreeCrop) {
+                    freedomCrop();
+                } else {
+                    int[] cropAttrs = mCiv.getCropAttrs();
+                    Bitmap cropBmp = Bitmap.createBitmap(mBigBmp, (int) (cropAttrs[0] / mScale), (int) (cropAttrs[1] / mScale), (int) (cropAttrs[2] / mScale), (int) (cropAttrs[3] / mScale));
+                    mIvDisplay.setImageBitmap(cropBmp);
+                    mGroupCrop.setVisibility(View.GONE);
+                    mGroupDisplay.setVisibility(View.VISIBLE);
+                }
+                break;
+            case R.id.btn_recrop:
+                mGroupCrop.setVisibility(View.VISIBLE);
+                mGroupDisplay.setVisibility(View.GONE);
+                break;
         }
-
-        mImgUtil.saveMat(dd, "cropCorners");
-        Bitmap perspective = perspective2(mSrc, cropCorners);
-        mIvCrop.setImageBitmap(perspective);
     }
 
+    private void freedomCrop() {
+        Mat bigMat = new Mat();
+        Utils.bitmapToMat(mBigBmp, bigMat);
+        Imgproc.cvtColor(bigMat, bigMat, Imgproc.COLOR_RGB2BGRA);
+
+        List<Point> cropCorners = mFcv.getCropCorners();
+        // Mat dd = mSamllMat.clone();
+        // for (Point p : cropCorners) {
+        //     Imgproc.circle(dd, p, 5, new Scalar(0, 255, 0), 30);
+        // }
+        // mImgUtil.saveMat(dd, "cropCorners");
+        List<Point> corners = new ArrayList<>();
+        for (Point p : cropCorners) {
+            corners.add(new Point(p.x / mScale, p.y / mScale));
+        }
+        Bitmap perspective = perspective(bigMat, corners);
+        mIvDisplay.setImageBitmap(perspective);
+
+        mGroupCrop.setVisibility(View.GONE);
+        mGroupDisplay.setVisibility(View.VISIBLE);
+    }
 }

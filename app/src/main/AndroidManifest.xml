@@ -13,11 +13,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".ScannerActivity"></activity>
-        <activity android:name=".IdentifyFeaturesActivity" />
-        <activity android:name=".BlurSharpenActivity" />
-        <activity android:name=".MorphologyActivity" />
-        <activity android:name=".BinaryActivity" />
-        <activity android:name=".JavaCameraViewActivity" />
+        <activity android:name=".view.IdentifyFeaturesActivity" />
+        <activity android:name=".view.BlurSharpenActivity" />
+        <activity android:name=".view.MorphologyActivity" />
+        <activity android:name=".view.BinaryActivity" />
+        <activity android:name=".view.JavaCameraViewActivity" />
         <activity
             android:name=".MainActivity"
             android:screenOrientation="landscape">

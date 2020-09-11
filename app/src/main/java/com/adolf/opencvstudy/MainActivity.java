@@ -3,7 +3,6 @@ package com.adolf.opencvstudy;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,10 +18,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.adolf.opencvstudy.view.BinaryActivity;
+import com.adolf.opencvstudy.view.BlurSharpenActivity;
+import com.adolf.opencvstudy.view.IdentifyFeaturesActivity;
+import com.adolf.opencvstudy.view.MorphologyActivity;
+
 import org.opencv.android.OpenCVLoader;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,14 +69,6 @@ public class MainActivity extends AppCompatActivity {
         mImg = new File(getExternalFilesDir(null), "/temp1.jpg");
         if(mImg.exists())
         mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
-        // try {
-        //     FileOutputStream out = new FileOutputStream(mImg);
-        //     BitmapFactory.decodeResource(getResources(), R.drawable.test).compress(Bitmap.CompressFormat.JPEG, 90, out);
-        //     out.flush();
-        //     out.close();
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
     }
 
     private void initPermission() {
@@ -114,6 +109,10 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_CODE_CAMERA:
                 if (mImg.exists()) {
                     mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
+                    Intent intent = new Intent();
+                    intent.putExtra("img", mImg.getAbsolutePath());
+                    intent.setClass(this, ScannerActivity.class);
+                    startActivity(intent);
                 } else
                     Toast.makeText(this, "图片未拍摄", Toast.LENGTH_SHORT).show();
                 break;

@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="80dp"
         android:gravity="center_horizontal">
 
         <Button
@@ -34,12 +34,12 @@
             android:text="扫描仪" />
     </LinearLayout>
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:gravity="center_horizontal"
+        android:visibility="gone"
         android:orientation="horizontal">
 
         <Button

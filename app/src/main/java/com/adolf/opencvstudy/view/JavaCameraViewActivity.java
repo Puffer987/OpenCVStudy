@@ -1,4 +1,4 @@
-package com.adolf.opencvstudy;
+package com.adolf.opencvstudy.view;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -9,6 +9,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
+import com.adolf.opencvstudy.R;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCamera2View;

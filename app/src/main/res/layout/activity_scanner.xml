@@ -6,31 +6,62 @@
     android:layout_height="match_parent"
     tools:context=".ScannerActivity">
 
-    <LinearLayout
-        android:id="@+id/operate"
+    <RelativeLayout
+        android:id="@+id/group_crop"
         android:layout_width="match_parent"
-        android:layout_height="400dp">
+        android:layout_height="match_parent"
+        android:visibility="visible">
 
         <com.adolf.opencvstudy.utils.FreedomCropView
             android:id="@+id/fcv"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
             android:scaleType="fitCenter" />
 
-        <ImageView
-            android:id="@+id/iv_crop"
-            android:layout_width="0dp"
-            android:layout_height="400dp"
-            android:layout_weight="1"
-            android:visibility="visible"/>
-    </LinearLayout>
+        <com.adolf.opencvstudy.utils.CropImgView
+            android:id="@+id/civ"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
 
-    <Button
-        android:id="@+id/btn_crop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true" />
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btn_crop"
+            android:layout_alignEnd="@+id/btn_crop"
+            android:layout_marginTop="50dp"
+            android:text="取消" />
+
+        <Button
+            android:id="@+id/btn_crop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:text="确定" />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/group_display"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_display"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <Button
+            android:id="@+id/btn_recrop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:text="重新\n裁切" />
+    </RelativeLayout>
 
 
     <androidx.recyclerview.widget.RecyclerView
@@ -38,5 +69,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="400dp"
-        />
+        android:visibility="gone" />
 </RelativeLayout>

@@ -68,6 +68,7 @@ public class ImgUtil {
     }
 
     public Bitmap zoomImage(Bitmap orgBtm, float scale) {
+        // scale = 指定像素 / 原始像素
         // 获取这个图片的宽和高
         int width = orgBtm.getWidth();
         int height = orgBtm.getHeight();

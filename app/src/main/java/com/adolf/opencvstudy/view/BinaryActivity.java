@@ -1,4 +1,4 @@
-package com.adolf.opencvstudy;
+package com.adolf.opencvstudy.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.adolf.opencvstudy.R;
 import com.adolf.opencvstudy.rv.ImgRVAdapter;
 import com.adolf.opencvstudy.rv.ItemRVBean;
 import com.adolf.opencvstudy.utils.ImgUtil;
