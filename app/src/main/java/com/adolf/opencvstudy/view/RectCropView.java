@@ -46,12 +46,12 @@ public class RectCropView extends androidx.appcompat.widget.AppCompatImageView {
     public void setInitCropRect(RectF inRect) {
         this.initCropRect = inRect;
         Log.d(TAG, "原始裁切边框Rect: " + initCropRect);
-        float l = Math.max(initCropRect.left * mScaleX + mTransX - 50, mBorderRect.left);
-        float t = Math.max(initCropRect.top * mScaleX + mTransY - 50, mBorderRect.top);
-        float r = Math.min(initCropRect.right * mScaleX + mTransX + 50, mBorderRect.right);
-        float b = Math.min(initCropRect.bottom * mScaleY + mTransY + 50, mBorderRect.bottom);
+        float l = Math.max(initCropRect.left * mScaleX + mTransX - 50, mBorderRect.left+50);
+        float t = Math.max(initCropRect.top * mScaleX + mTransY - 50, mBorderRect.top+50);
+        float r = Math.min(initCropRect.right * mScaleX + mTransX + 50, mBorderRect.right-50);
+        float b = Math.min(initCropRect.bottom * mScaleY + mTransY + 50, mBorderRect.bottom-50);
         mEdgeRect = new RectF(l, t, r, b);
-        // Log.d(TAG, "转换裁切边框Rect: " + mEdgeRect);
+        Log.d(TAG, "转换裁切边框Rect: " + mEdgeRect);
         // mEdgeRect = new RectF(mBorderRect.left + 100, mBorderRect.top + 100, mBorderRect.right - 100, mBorderRect.bottom - 100);
 
         Log.d(TAG, "变换后的裁切边框: " + mEdgeRect);

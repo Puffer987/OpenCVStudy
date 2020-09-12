@@ -26,20 +26,19 @@
             android:scaleType="fitCenter" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
             android:layout_gravity="right|center"
             android:background="#88000000"
             android:gravity="center_vertical"
             android:orientation="vertical"
-            android:paddingLeft="@dimen/dp_20"
-            android:paddingRight="@dimen/dp_20">
+            android:paddingLeft="@dimen/dp_10"
+            android:paddingRight="@dimen/dp_10">
 
             <ImageView
                 android:id="@+id/image_cropper_corp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_complete_bg" />
 
 
@@ -48,7 +47,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_retry_bg" />
 
 
@@ -57,7 +55,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_close_bg" />
 
         </LinearLayout>
@@ -75,20 +72,19 @@
             android:layout_height="match_parent" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
             android:layout_gravity="right|center"
             android:background="#88000000"
             android:gravity="center_vertical"
             android:orientation="vertical"
-            android:paddingLeft="@dimen/dp_20"
-            android:paddingRight="@dimen/dp_20">
+            android:paddingLeft="@dimen/dp_10"
+            android:paddingRight="@dimen/dp_10">
 
             <ImageView
                 android:id="@+id/image_display_complete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_complete_bg" />
 
             <ImageView
@@ -96,7 +92,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_rotation_bg" />
 
             <ImageView
@@ -104,7 +99,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_retry_bg" />
 
             <ImageView
@@ -112,7 +106,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_cut_bg" />
 
             <ImageView
@@ -120,7 +113,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
-                android:padding="@dimen/image_cropper_retry_padding"
                 android:src="@drawable/camera_close_bg" />
 
         </LinearLayout>

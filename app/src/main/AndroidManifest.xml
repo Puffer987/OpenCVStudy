@@ -12,7 +12,7 @@
         android:roundIcon="@mipmap/ic_opencv"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.ShowProcessActivity"></activity>
+        <activity android:name=".ui.ShowProcessActivity" />
         <activity android:name=".ui.IdentifyFeaturesActivity" />
         <activity android:name=".ui.BlurSharpenActivity" />
         <activity android:name=".ui.MorphologyActivity" />
@@ -23,11 +23,10 @@
             android:configChanges="keyboardHidden"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:screenOrientation="landscape"
-            android:windowSoftInputMode="stateHidden"></activity>
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="landscape">
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

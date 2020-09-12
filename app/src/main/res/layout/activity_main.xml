@@ -25,12 +25,14 @@
             android:id="@+id/btn_shot"
             android:layout_width="200dp"
             android:layout_height="80dp"
+            android:layout_weight="1"
             android:text="拍照截图" />
 
         <Button
             android:id="@+id/btn_show"
             android:layout_width="200dp"
             android:layout_height="80dp"
+            android:layout_weight="1"
             android:text="处理流程" />
     </LinearLayout>
 
@@ -46,24 +48,29 @@
             android:id="@+id/btn_binary"
             android:layout_width="200dp"
             android:layout_height="80dp"
+            android:layout_weight="1"
             android:text="二值" />
 
         <Button
             android:id="@+id/btn_mor"
             android:layout_width="200dp"
             android:layout_height="80dp"
+
+            android:layout_weight="1"
             android:text="形态学" />
 
         <Button
             android:id="@+id/btn_blur"
             android:layout_width="200dp"
             android:layout_height="80dp"
+            android:layout_weight="1"
             android:text="模糊" />
 
         <Button
             android:id="@+id/btn_identify"
             android:layout_width="200dp"
             android:layout_height="80dp"
+            android:layout_weight="1"
             android:text="特征识别" />
     </LinearLayout>
 </RelativeLayout>
