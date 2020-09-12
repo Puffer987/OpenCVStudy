@@ -22,6 +22,7 @@ import com.adolf.opencvstudy.ui.BinaryActivity;
 import com.adolf.opencvstudy.ui.BlurSharpenActivity;
 import com.adolf.opencvstudy.ui.IdentifyFeaturesActivity;
 import com.adolf.opencvstudy.ui.MorphologyActivity;
+import com.adolf.opencvstudy.ui.ShowProcessActivity;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<String> askPermissions = new ArrayList<>();
     private File mImg;
+    private File mCachePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.setVmPolicy(builder.build());
 
         mImg = new File(getExternalFilesDir(null), "/temp1.jpg");
+        mCachePath = getExternalFilesDir(null);
         if (mImg.exists())
             mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
     }
@@ -137,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
     public native String stringFromJNI();
 
-    @OnClick({R.id.btn_binary, R.id.btn_scan, R.id.btn_mor, R.id.btn_blur, R.id.btn_identify, R.id.btn_shot})
+    @OnClick({R.id.btn_binary, R.id.btn_mor, R.id.btn_blur, R.id.btn_identify, R.id.btn_shot})
     public void onViewClicked(View view) {
         Intent intent = new Intent();
         intent.putExtra("img", mImg.getAbsolutePath());
@@ -158,10 +161,6 @@ public class MainActivity extends AppCompatActivity {
                 intent.setClass(this, IdentifyFeaturesActivity.class);
                 startActivity(intent);
                 break;
-            case R.id.btn_scan:
-                intent.setClass(this, AutoCropperActivity.class);
-                startActivity(intent);
-                break;
             case R.id.btn_shot:
                 Log.d(TAG, "FilePath:" + mImg.getAbsolutePath());
                 Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE); //指定拍照
@@ -171,5 +170,13 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
+    }
+
+    @OnClick(R.id.btn_show)
+    public void showProcess(){
+        Intent intent = new Intent();
+        intent.putExtra("cachePath", mCachePath.getAbsolutePath());
+        intent.setClass(this, ShowProcessActivity.class);
+        startActivity(intent);
     }
 }

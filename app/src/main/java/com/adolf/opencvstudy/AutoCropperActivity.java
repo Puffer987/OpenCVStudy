@@ -103,7 +103,7 @@ public class AutoCropperActivity extends AppCompatActivity {
         CropUtils cropUtils = new CropUtils();
 
         // 输出处理图片
-        cropUtils.setImgCachePath(new File(mImgCachePath, "/opencv"));
+        cropUtils.setImgCachePath(new File(mImgCachePath, "/process"));
 
         mCropPath = new File(mImgCachePath, CROP_IMG_NAME);
 

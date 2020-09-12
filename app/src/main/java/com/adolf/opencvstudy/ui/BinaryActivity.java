@@ -166,5 +166,4 @@ public class BinaryActivity extends AppCompatActivity {
     }
 
 
-    public native String stringFromJNI();
 }

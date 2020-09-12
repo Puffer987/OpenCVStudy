@@ -25,13 +25,13 @@
             android:id="@+id/btn_shot"
             android:layout_width="200dp"
             android:layout_height="80dp"
-            android:text="拍照" />
+            android:text="拍照截图" />
 
         <Button
-            android:id="@+id/btn_scan"
+            android:id="@+id/btn_show"
             android:layout_width="200dp"
             android:layout_height="80dp"
-            android:text="扫描仪" />
+            android:text="处理流程" />
     </LinearLayout>
 
     <LinearLayout
