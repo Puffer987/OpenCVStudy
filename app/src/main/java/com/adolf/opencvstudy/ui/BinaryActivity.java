@@ -1,4 +1,4 @@
-package com.adolf.opencvstudy.view;
+package com.adolf.opencvstudy.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;

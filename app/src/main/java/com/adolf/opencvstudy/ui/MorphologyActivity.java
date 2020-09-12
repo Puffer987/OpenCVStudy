@@ -1,9 +1,8 @@
-package com.adolf.opencvstudy.view;
+package com.adolf.opencvstudy.ui;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -27,82 +26,72 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class BlurSharpenActivity extends AppCompatActivity {
-
+public class MorphologyActivity extends AppCompatActivity {
+    private static final String TAG = "[jq]MorphologyActivity";
     @BindView(R.id.rv_imgs)
     RecyclerView mRvImgs;
-    @BindView(R.id.btn_do)
-    Button mBtnDo;
-
     private List<ItemRVBean> mRVBeanList = new ArrayList<>();
     private File mImgCachePath;
     private ImgUtil mImgUtil;
     private Bitmap mOrgBtm;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_blur_sharpen);
+        setContentView(R.layout.activity_morphology);
         ButterKnife.bind(this);
         mImgCachePath = new File(getExternalFilesDir(null), "/process");
-
-        mImgUtil = new ImgUtil(mImgCachePath, mRVBeanList);
+        mImgUtil = new ImgUtil(mImgCachePath,mRVBeanList);
 
         String path = getIntent().getStringExtra("img");
         mOrgBtm = BitmapFactory.decodeFile(path);
     }
 
-
     @OnClick(R.id.btn_do)
     public void onViewClicked() {
-        mBtnDo.setEnabled(false);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                myBlur(mOrgBtm);
-                runOnUiThread(() -> showImg());
-            }
-        }).start();
-
-    }
-
-    private void showImg() {
+        mRVBeanList.clear();
+        morphological(mOrgBtm);
 
         ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
         GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         mRvImgs.setLayoutManager(manager);
         mRvImgs.setAdapter(adapter);
-        mBtnDo.setEnabled(true);
     }
 
-    private void myBlur(Bitmap source) {
+    private void morphological(Bitmap source) {
         Mat src = new Mat();
         Utils.bitmapToMat(source, src);
         Mat out = new Mat();
-        Imgproc.cvtColor(src,src,Imgproc.COLOR_RGBA2BGRA);
-        mImgUtil.saveMat(src, "原图");
+        Mat binary = new Mat();
+        Mat temp = new Mat();
 
-        /*
-         * 模糊核
-         * height > width ：有种橡皮擦往上擦的感觉
-         * 还能放一个参数：锚点，默认为Point(-1,-1)，即核的中心。
-         */
-        Imgproc.blur(src, out, new Size(50, 10));
-        mImgUtil.saveMat(out, "均值模糊");
+        Imgproc.cvtColor(src, binary, Imgproc.COLOR_BGRA2GRAY);
+        Imgproc.adaptiveThreshold(binary, binary, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 13, 5);
+        mImgUtil.saveMat(binary, "均值，二值");
 
-        Imgproc.GaussianBlur(src, out, new Size(7, 13), 0);
-        mImgUtil.saveMat(out, "模糊");
+        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
+        Imgproc.dilate(binary, out, element);
+        mImgUtil.saveMat(out, "膨胀:扩大高亮部分");
 
-        Imgproc.medianBlur(src, out, 13);
-        mImgUtil.saveMat(out, "中值模糊");
+        Imgproc.erode(binary, out, element);
+        mImgUtil.saveMat(out, "腐蚀:缩小高亮部分");
 
-        // Imgproc.blur(src,out,new Size(3,3));
-        // mImgUtil.saveMat(src,"模糊");
+        Imgproc.morphologyEx(binary, out, Imgproc.MORPH_OPEN, element);
+        mImgUtil.saveMat(out, "开运算：先腐蚀后膨胀--去除小白点");
+
+        Imgproc.morphologyEx(binary, out, Imgproc.MORPH_CLOSE, element);
+        mImgUtil.saveMat(out, "闭运算：先膨胀后腐蚀--去除小黑点");
 
 
+        Mat element2 = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(4, 4));
+        Imgproc.morphologyEx(binary, temp, Imgproc.MORPH_OPEN, element);
+        Imgproc.erode(temp, out, element2);
+        mImgUtil.saveMat(out, "开运算+腐蚀");
+
+        binary.release();
         src.release();
         out.release();
     }
-
 
 }

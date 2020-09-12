@@ -1,4 +1,4 @@
-package com.adolf.opencvstudy.view;
+package com.adolf.opencvstudy.ui;
 
 import android.Manifest;
 import android.content.pm.PackageManager;

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="im_chat_top_height">62dp</dimen>
+    <dimen name="im_chat_left_width">296dp</dimen>
+    <dimen name="im_chat_class_icon_size">148dp</dimen>
+    <dimen name="im_chat_class_icon_marginTop">180dp</dimen>
+    <dimen name="im_chat_left_name_max_width">148dp</dimen>
+    <dimen name="im_chat_left_name_marginTop">20dp</dimen>
+    <dimen name="im_chat_className_margin">48dp</dimen>
+    <dimen name="im_chat_className_marginTop">16dp</dimen>
+    <dimen name="im_voiceView_size">196dp</dimen>
+    <dimen name="dp_32">32dp</dimen>
+    <dimen name="dp_24">24dp</dimen>
+    <dimen name="dp_12">12dp</dimen>
+    <dimen name="dp_16">16dp</dimen>
+    <dimen name="dp_8">8dp</dimen>
+    <dimen name="dp_36">36dp</dimen>
+    <dimen name="dp_28">28dp</dimen>
+    <dimen name="dp_10">10dp</dimen>
+    <dimen name="dp_20">20dp</dimen>
+    <dimen name="dp_42">42dp</dimen>
+    <dimen name="dialog_topic_width">772dp</dimen>
+    <dimen name="dialog_topic_height">532dp</dimen>
+    <dimen name="topic_chat_width">480dp</dimen>
+    <dimen name="topic_chat_height">214dp</dimen>
+
+    <!-- activity_camera-->
+    <dimen name="activity_camera_margin_right">2dp</dimen>
+    <dimen name="activity_camera_close_margin_top">160dp</dimen>
+    <dimen name="activity_camera_close_margin_right">41dp</dimen>
+
+    <!-- activity_custom_camera -->
+    <dimen name="custom_camera_margin_right">20dp</dimen>
+
+    <!-- activity_image_cropper -->
+    <dimen name="image_cropper_layout_margin_right">50dp</dimen>
+    <dimen name="image_cropper_retry_padding">10dp</dimen>
+    <dimen name="image_cropper_complete_margin_top">100dp</dimen>
+</resources>

@@ -181,8 +181,8 @@ public class ScannerActivity extends AppCompatActivity {
         Rect borderRect = Imgproc.boundingRect(approxCure);
 
 
-        if (borderRect.height > mSamllMat.height() * 0.3 && borderRect.width > mSamllMat.width() * 0.3) {
-            if (corners.size() == 4) {
+        if (borderRect.height > mSamllMat.height() * 0.3 && borderRect.width > mSamllMat.width() * 0.3&&corners.size() == 4) {
+            // if (corners.size() == 4) {
                 List<PointF> points = new ArrayList<>();
                 for (int i = 0; i < corners.size(); i++) {
                     points.add(new PointF((int) corners.get(i).x, (int) corners.get(i).y));
@@ -194,27 +194,27 @@ public class ScannerActivity extends AppCompatActivity {
                 });
 
                 isFreeCrop = true;
-            } else if (corners.size() > 1) {
-                Rect rect = Imgproc.boundingRect(approxCure);
-
-                Log.d(TAG, "rect: " + rect.toString());
-                Imgproc.rectangle(drawing, rect, new Scalar(255), 1);
-                mImgUtil.saveMat(drawing, "rect");
-
-                // android.graphics.RectF构造方法是从左，上，右，下各自的坐标
-                // org.opencv.core.Rect构造方法是左上坐标，宽，高
-                RectF initCropRect = new RectF(rect.x, rect.y, rect.width + rect.x, rect.height + rect.y);
-                Log.d(TAG, "包含角点的rect: " + rect);
-                Log.d(TAG, "传给crop的Rect: " + initCropRect);
-
-                isFreeCrop = false;
-
-                runOnUiThread(() -> {
-                    mCiv.setInitCropRect(initCropRect);
-                    mFcv.setVisibility(View.GONE);
-                    mCiv.setVisibility(View.VISIBLE);
-                });
-            }
+            // } else if (corners.size() > 1) {
+            //     Rect rect = Imgproc.boundingRect(approxCure);
+            //
+            //     Log.d(TAG, "rect: " + rect.toString());
+            //     Imgproc.rectangle(drawing, rect, new Scalar(255), 1);
+            //     mImgUtil.saveMat(drawing, "rect");
+            //
+            //     // android.graphics.RectF构造方法是从左，上，右，下各自的坐标
+            //     // org.opencv.core.Rect构造方法是左上坐标，宽，高
+            //     RectF initCropRect = new RectF(rect.x, rect.y, rect.width + rect.x, rect.height + rect.y);
+            //     Log.d(TAG, "包含角点的rect: " + rect);
+            //     Log.d(TAG, "传给crop的Rect: " + initCropRect);
+            //
+            //     isFreeCrop = false;
+            //
+            //     runOnUiThread(() -> {
+            //         mCiv.setInitCropRect(initCropRect);
+            //         mFcv.setVisibility(View.GONE);
+            //         mCiv.setVisibility(View.VISIBLE);
+            //     });
+            // }
         } else {
             Rect rect = autoCrop(mSamllMat);
             RectF initCropRect;

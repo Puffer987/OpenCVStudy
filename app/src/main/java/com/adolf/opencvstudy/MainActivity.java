@@ -18,10 +18,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.adolf.opencvstudy.view.BinaryActivity;
-import com.adolf.opencvstudy.view.BlurSharpenActivity;
-import com.adolf.opencvstudy.view.IdentifyFeaturesActivity;
-import com.adolf.opencvstudy.view.MorphologyActivity;
+import com.adolf.opencvstudy.ui.BinaryActivity;
+import com.adolf.opencvstudy.ui.BlurSharpenActivity;
+import com.adolf.opencvstudy.ui.IdentifyFeaturesActivity;
+import com.adolf.opencvstudy.ui.MorphologyActivity;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "[jq]MainActivity";
     private static final int REQUEST_CODE_CAMERA = 0x1001;
+    private static final int REQUEST_CODE_CROP = 0x2001;
     @BindView(R.id.iv_org)
     ImageView mIvOrg;
     private String[] needPermissions = new String[]{
@@ -67,8 +68,8 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.setVmPolicy(builder.build());
 
         mImg = new File(getExternalFilesDir(null), "/temp1.jpg");
-        if(mImg.exists())
-        mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
+        if (mImg.exists())
+            mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
     }
 
     private void initPermission() {
@@ -108,14 +109,27 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_CODE_CAMERA:
                 if (mImg.exists()) {
-                    mIvOrg.setImageBitmap(BitmapFactory.decodeFile(mImg.getAbsolutePath()));
                     Intent intent = new Intent();
                     intent.putExtra("img", mImg.getAbsolutePath());
-                    intent.setClass(this, ScannerActivity.class);
-                    startActivity(intent);
+                    intent.setClass(this, AutoCropperActivity.class);
+                    startActivityForResult(intent, REQUEST_CODE_CROP);
                 } else
                     Toast.makeText(this, "图片未拍摄", Toast.LENGTH_SHORT).show();
                 break;
+            case REQUEST_CODE_CROP:
+                if (data != null) {
+                    String cropResult = data.getStringExtra("cropResult");
+                    if (cropResult != null && !cropResult.equals(""))
+                        Log.d(TAG, "cropResult: " + cropResult);
+                    mIvOrg.setImageBitmap(BitmapFactory.decodeFile(cropResult));
+                    boolean reShot = data.getBooleanExtra("reShot", false);
+                    if (reShot) {
+                        Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE); //指定拍照
+                        Uri uri = Uri.fromFile(mImg);
+                        i.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                        startActivityForResult(i, REQUEST_CODE_CAMERA);
+                    }
+                }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -145,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
             case R.id.btn_scan:
-                intent.setClass(this, ScannerActivity.class);
+                intent.setClass(this, AutoCropperActivity.class);
                 startActivity(intent);
                 break;
             case R.id.btn_shot:

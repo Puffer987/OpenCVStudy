@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical"
+    tools:context=".AutoCropperActivity">
+
+    <FrameLayout
+        android:id="@+id/group_crop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible">
+
+        <com.adolf.opencvstudy.view.FreedomCropView
+            android:id="@+id/freedom_cropper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+        <com.adolf.opencvstudy.view.RectCropView
+            android:id="@+id/rect_cropper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right|center"
+            android:background="#88000000"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/dp_20"
+            android:paddingRight="@dimen/dp_20">
+
+            <ImageView
+                android:id="@+id/image_cropper_corp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_complete_bg" />
+
+
+            <ImageView
+                android:id="@+id/image_cropper_reset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_retry_bg" />
+
+
+            <ImageView
+                android:id="@+id/image_cropper_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_close_bg" />
+
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/group_display"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible">
+
+        <ImageView
+            android:id="@+id/image_cropper_result"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right|center"
+            android:background="#88000000"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/dp_20"
+            android:paddingRight="@dimen/dp_20">
+
+            <ImageView
+                android:id="@+id/image_display_complete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_complete_bg" />
+
+            <ImageView
+                android:id="@+id/image_display_rotate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_rotation_bg" />
+
+            <ImageView
+                android:id="@+id/image_display_retry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_retry_bg" />
+
+            <ImageView
+                android:id="@+id/image_display_cut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_cut_bg" />
+
+            <ImageView
+                android:id="@+id/image_display_close"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/image_cropper_complete_margin_top"
+                android:padding="@dimen/image_cropper_retry_padding"
+                android:src="@drawable/camera_close_bg" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+
+</FrameLayout>
