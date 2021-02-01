@@ -52,7 +52,7 @@ public class ShowProcessActivity extends AppCompatActivity {
 
 
         ImgRVAdapter adapter = new ImgRVAdapter(mRVBeanList, this);
-        GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
+        GridLayoutManager manager = new GridLayoutManager(this, 4, GridLayoutManager.VERTICAL, false);
         mRvImgs.setLayoutManager(manager);
         mRvImgs.setAdapter(adapter);
     }

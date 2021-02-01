@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.adolf.opencvstudy.R;
 
+import org.opencv.android.CameraActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCamera2View;
 import org.opencv.core.Mat;
@@ -23,7 +24,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
-public class JavaCameraViewActivity extends AppCompatActivity {
+public class JavaCameraViewActivity extends CameraActivity {
 
     private static final String TAG = "[jq]JavaCameraView";
     @BindView(R.id.jcv_test)
@@ -44,6 +45,7 @@ public class JavaCameraViewActivity extends AppCompatActivity {
 
         initPermission();
 
+        mJcvTest.setCameraPermissionGranted();
 
         mJcvTest.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2() {
             @Override

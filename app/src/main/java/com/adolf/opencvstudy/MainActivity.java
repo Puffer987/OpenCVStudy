@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat;
 import com.adolf.opencvstudy.ui.BinaryActivity;
 import com.adolf.opencvstudy.ui.BlurSharpenActivity;
 import com.adolf.opencvstudy.ui.IdentifyFeaturesActivity;
+import com.adolf.opencvstudy.ui.JavaCameraViewActivity;
 import com.adolf.opencvstudy.ui.MorphologyActivity;
 import com.adolf.opencvstudy.ui.ShowProcessActivity;
 
@@ -140,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
     public native String stringFromJNI();
 
-    @OnClick({R.id.btn_binary, R.id.btn_mor, R.id.btn_blur, R.id.btn_identify, R.id.btn_shot})
+    @OnClick({R.id.btn_binary, R.id.btn_mor, R.id.btn_blur, R.id.btn_identify, R.id.btn_shot,R.id.btn_camera})
     public void onViewClicked(View view) {
         Intent intent = new Intent();
         intent.putExtra("img", mImg.getAbsolutePath());
@@ -159,6 +160,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_identify:
                 intent.setClass(this, IdentifyFeaturesActivity.class);
+                startActivity(intent);
+                break;
+                case R.id.btn_camera:
+                intent.setClass(this, JavaCameraViewActivity.class);
                 startActivity(intent);
                 break;
             case R.id.btn_shot:

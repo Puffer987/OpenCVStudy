@@ -12,6 +12,7 @@
         android:roundIcon="@mipmap/ic_opencv"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".ui.CameraXActivity"></activity>
         <activity android:name=".ui.ShowProcessActivity" />
         <activity android:name=".ui.IdentifyFeaturesActivity" />
         <activity android:name=".ui.BlurSharpenActivity" />
@@ -24,9 +25,7 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:windowSoftInputMode="stateHidden" />
-        <activity
-            android:name=".MainActivity"
-            >
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

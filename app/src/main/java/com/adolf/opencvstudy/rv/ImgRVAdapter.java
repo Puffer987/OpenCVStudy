@@ -49,7 +49,7 @@ public class ImgRVAdapter extends RecyclerView.Adapter<ImgRVAdapter.ViewHolder> 
         // Picasso.with(mContext).load(new File(mImgList.get(position))).into( holder.mImgItem);
         Glide.with(mContext).load(new File(mItemList.get(position).getImgPath())).override(500, 500).into(holder.mItemImg);
 
-        holder.mItemTitle.setText(mItemList.get(position).getImgTitle());
+        holder.mItemTitle.setText(mItemList.get(position).getImgTitle().substring(13));
 
         holder.mItemImg.setOnClickListener(view -> {
             myDialog = new BigPicDialog(mContext, R.style.BigPicDialog);

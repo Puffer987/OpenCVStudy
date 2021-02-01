@@ -41,6 +41,7 @@ android {
             jniLibs.srcDirs = ['src/main/jniLibs']
         }
     }
+    ndkVersion '21.0.6113669'
 
 }
 
@@ -53,6 +54,13 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.github.bumptech.glide:glide:3.7.0'
 
+    def camerax_version = "1.0.0-beta07"
+    // CameraX core library using camera2 implementation
+    implementation "androidx.camera:camera-camera2:$camerax_version"
+    // CameraX Lifecycle Library
+    implementation "androidx.camera:camera-lifecycle:$camerax_version"
+    // CameraX View class
+    implementation "androidx.camera:camera-view:1.0.0-alpha14"
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0'
     testImplementation 'junit:junit:4.12'
